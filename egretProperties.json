@@ -1,0 +1,31 @@
+{
+  "engineVersion": "5.3.2",
+  "compilerVersion": "5.3.2",
+  "template": {},
+  "target": {
+    "current": "web"
+  },
+  "modules": [
+    {
+      "name": "egret"
+    },
+    {
+      "name": "game"
+    },
+    {
+      "name": "tween"
+    },
+    {
+      "name": "assetsmanager"
+    },
+    {
+      "name": "socket"
+    },
+    {
+      "name": "eui"
+    },
+    {
+      "name": "promise"
+    }
+  ]
+}
