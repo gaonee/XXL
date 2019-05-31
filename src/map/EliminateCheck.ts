@@ -64,11 +64,17 @@ class EliminateCheck {
                 if (block != null) {
                     if (anchorType == block.type) {
                         count ++;
+                        continue;
                     } else {
-                        count = 0;
                         anchorType = block.type;
                     }
-                } else {}
+                } else {
+                    anchorType = null;
+                }
+                if (count >= 3) {
+                    for (let eCol = 1; eCol <= count; eCol++) {}
+                }
+                count = 0;
             }
         }
         return ret;
