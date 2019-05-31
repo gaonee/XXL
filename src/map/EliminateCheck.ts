@@ -48,14 +48,15 @@ class EliminateCheck {
     /*
      * 全图扫描，计算是否存在可消除的情况。
      * 算法原理：通过两次扫描，找到所有符合条件的格子。算法复杂度为O(n2)。详细原理如下：
-     * 1.先逐行扫，找到连续三个或者三个以上相同格子时，再逐个扫描这些格子的列，
-     * 找到所有连续相同的格子，计入消除列表，并在扫描map中标记，下次不再扫描。
-     * 2.逐列扫描，找到连续三个或者三个以上相同格子，计入消除列表，并在扫描map中标记。
-     * 注意，因为行已经扫描，此时不再扫描行。
+     * 1.先逐行扫，找到连续三个或者三个以上相同格子，计入行消除列表；
+     * 2.逐列扫描，找到连续三个或者三个以上相同格子，计入列消除列表；
+     * 3.比较两个消除列表，找到重复的格子。
     **/
     public whollyCheck(map: BlockMap): Point[] {
         let ret: Point[] = new Array();
-        let scanMap = null;
+        let rowArr = new Array();
+        let colArr = new Array();
+
         for (let row = 0; row < this.row; row++) {
             let anchorType = null;
             let count = 0;
@@ -70,9 +71,6 @@ class EliminateCheck {
                     }
                 } else {
                     anchorType = null;
-                }
-                if (count >= 3) {
-                    for (let eCol = 1; eCol <= count; eCol++) {}
                 }
                 count = 0;
             }
