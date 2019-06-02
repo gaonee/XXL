@@ -72,7 +72,11 @@ class BlockMap {
                     if (count > 0) {
                         block.drop(count, () => {
                             // 填充至新的位置
-                            this.map[row+count][i] = block;
+                            if (Array.isArray(this.map[row+count])) {
+                                this.map[row+count][i] = block;
+                            } else {
+                                Log.warn("位置不存在！");
+                            }
                         })
                     }
                 }
@@ -99,7 +103,10 @@ class BlockMap {
         let eliminateArr: boolean[] = new Array(this.column);
         for (let i = 0; i < points.length; i++) {
             let p = points[i];
-            this.container.removeChild(this.get(p.row, p.col).getObject());
+            let block = this.get(p.row, p.col);
+            if (block == null) continue;
+
+            this.container.removeChild(block.getObject());
             this.map[p.row][p.col] = null;
 
             if (eliminateArr[p.col] == undefined) {
@@ -107,7 +114,7 @@ class BlockMap {
             }
         }
         this.dropDown(eliminateArr);
-        setTimeout(callback, 300);
+        setTimeout(callback, 400);
     }
 
     /*
