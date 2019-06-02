@@ -123,8 +123,9 @@ class Control {
                 this.status = BLOCK_STATUS.ELIMINATION;
                 this.map.exchange(touchRow, touchCol, distRow, distCol);
                 this.map.eliminate(ret, () => {
-                    this.status = BLOCK_STATUS.READY;
+                    // 
                     this.checkMap();
+                    this.whoolyEliminate();
                 });
             } else {
                 // move back
@@ -135,6 +136,21 @@ class Control {
             }
         });
         dist.change(-dir);
+    }
+
+    private whoolyEliminate() {
+        let ret = this.eliminateCheck.whollyCheck(this.map);
+        if (ret.length > 0) {
+            Log.debug("=========whollyCheck can sheck");
+            this.map.eliminate(ret, () => {
+                Log.debug("=======whollyCheck");
+                this.whoolyEliminate();
+            });
+        } else {
+            Log.debug("Finish eliminate.");
+            this.status = BLOCK_STATUS.READY;
+            this.checkMap();
+        }
     }
 
     private initMap() {
