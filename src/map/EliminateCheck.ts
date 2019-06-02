@@ -59,7 +59,7 @@ class EliminateCheck {
 
         for (let row = 0; row < this.row; row++) {
             let anchorType = null;
-            let count = 0;
+            let count = 1;
             for (let col = 0; col < this.column; col++) {
                 let block = map.get(row, col);
                 if (block != null) {
@@ -72,7 +72,43 @@ class EliminateCheck {
                 } else {
                     anchorType = null;
                 }
-                count = 0;
+                if (count >= 3) {
+                    for (let c = 1; c <= count; c++) {
+                        ret.push({
+                            row: row,
+                            col: col - c
+                        });
+                    }
+                }
+                count = 1;
+            }
+        }
+
+        // 扫描列
+        for (let col = 0; col < this.row; col++) {
+            let anchorType = null;
+            let count = 1;
+            for (let row = 0; row < this.column; row++) {
+                let block = map.get(col, row);
+                if (block != null) {
+                    if (anchorType == block.type) {
+                        count ++;
+                        continue;
+                    } else {
+                        anchorType = block.type;
+                    }
+                } else {
+                    anchorType = null;
+                }
+                if (count >= 3) {
+                    for (let c = 1; c <= count; c++) {
+                        ret.push({
+                            row: row - c,
+                            col: col
+                        });
+                    }
+                }
+                count = 1;
             }
         }
         return ret;
