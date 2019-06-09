@@ -141,15 +141,14 @@ class Control {
     private whoolyEliminate() {
         let ret = this.eliminateCheck.whollyCheck(this.map);
         if (ret.length > 0) {
-            Log.debug("=========whollyCheck can sheck");
             this.map.eliminate(ret, () => {
-                Log.debug("=======whollyCheck");
                 this.whoolyEliminate();
             });
         } else {
             Log.debug("Finish eliminate.");
             this.status = BLOCK_STATUS.READY;
             this.checkMap();
+            console.log(this.map)
         }
     }
 
