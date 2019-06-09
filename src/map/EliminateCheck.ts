@@ -50,7 +50,7 @@ class EliminateCheck {
      * 算法原理：通过两次扫描，找到所有符合条件的格子。算法复杂度为O(n2)。详细原理如下：
      * 1.先逐行扫，找到连续三个或者三个以上相同格子，计入行消除列表；
      * 2.逐列扫描，找到连续三个或者三个以上相同格子，计入列消除列表；
-     * 3.比较两个消除列表，找到重复的格子。
+     * 3.比较两个消除列表，找到重复的格子。（暂未实现）
     **/
     public whollyCheck(map: BlockMap): Point[] {
         let ret: Point[] = new Array();
@@ -65,50 +65,45 @@ class EliminateCheck {
                 if (block != null) {
                     if (anchorType == block.type) {
                         count ++;
-                        continue;
+                        // 扫描到最后一行，需要结算扫描结果。
+                        if (col == this.column-1) {
+                            this.settleRow(row, col, count, ret);
+                        }
                     } else {
+                        this.settleRow(row, col, count, ret);
                         anchorType = block.type;
+                        count = 1;
                     }
                 } else {
                     anchorType = null;
+                    this.settleRow(row, col, count, ret);
+                    count = 0;
                 }
-                if (count >= 3) {
-                    for (let c = 1; c <= count; c++) {
-                        ret.push({
-                            row: row,
-                            col: col - c
-                        });
-                    }
-                }
-                count = 1;
             }
         }
 
         // 扫描列
-        for (let col = 0; col < this.row; col++) {
+        for (let col = 0; col < this.column; col++) {
             let anchorType = null;
             let count = 1;
-            for (let row = 0; row < this.column; row++) {
-                let block = map.get(col, row);
+            for (let row = 0; row < this.row; row++) {
+                let block = map.get(row, col);
                 if (block != null) {
                     if (anchorType == block.type) {
                         count ++;
-                        continue;
+                        if (row == this.row-1) {
+                            this.settleCol(row, col, count, ret);
+                        }
                     } else {
+                        this.settleCol(row, col, count, ret);
                         anchorType = block.type;
+                        count = 1;
                     }
                 } else {
+                    this.settleCol(row, col, count, ret);
                     anchorType = null;
+                    count = 0
                 }
-                if (count >= 3) {
-                    for (let c = 1; c <= count; c++) {
-                        ret.push({
-                            row: row - c,
-                            col: col
-                        });
-                    }
-                }
-                count = 1;
             }
         }
         return ret;
@@ -177,5 +172,41 @@ class EliminateCheck {
             ret.push({row: row, col: col});
         }
         return ret;
+    }
+
+    /*
+     * 行扫描遇到不同的格子，需要结算结果
+     * @param row 扫描所在行
+     * @param col 扫描至哪一列
+     * @param count 本次扫描的相同格子数量
+     * @param ret 结果
+    **/
+    private settleRow(row: number, col: number, count: number, ret) {
+        if (count >= 3) {
+            for (let i = 1; i <= count; i++) {
+                ret.push({
+                    row: row,
+                    col: col - i
+                });
+            }
+        }
+    }
+
+    /*
+     * 列扫描遇到不同的格子，需要结算结果
+     * @param row 扫描所在列
+     * @param col 扫描至哪一行
+     * @param count 本次扫描的相同格子数量
+     * @param ret 结果
+    **/
+    private settleCol(row: number, col: number, count: number, ret) {
+        if (count >= 3) {
+            for (let i = 1; i <= count; i++) {
+                ret.push({
+                    row: row - i,
+                    col: col
+                });
+            }
+        }
     }
 }
