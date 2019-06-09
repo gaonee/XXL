@@ -28,6 +28,25 @@ class BlockMap {
         }
     }
 
+    /*
+     * 下降后位置更新
+    **/
+    private dropColList(col: number, dropList, callback?: Function): void {
+        let finishCount = 0;
+        for (let row = 0; row < dropList.length; row++) {
+            let block: BlockBase = dropList[row].block;
+            block.drop(dropList[row].count, () => {
+                finishCount ++;
+                if (finishCount == dropList.length) {
+                    for (let r = 0; r < dropList.length; r++) {
+                        this.map[r][col] = dropList[r].block;
+                    }
+                    callback && callback();
+                }
+            })
+        }
+    }
+
 
     /*
      * 填充格子
@@ -57,12 +76,16 @@ class BlockMap {
      * 填充和下落
      * @param eliminateArr 哪些列有格子消除
     **/
-    public dropDown(eliminateArr: boolean[]) {
+    public dropDown(eliminateArr: boolean[], callback?: Function) {
+        let dropCount = 0;
         for (let i = 0; i < eliminateArr.length; i++) {
             let info = eliminateArr[i];
             if (info == undefined) continue;
 
             let count = 0;
+            let dropList = new Array();
+
+            dropCount++;
 
             for (let row = this.row-1; row >= 0; row--) {
                 let block = this.get(row, i);
@@ -70,28 +93,31 @@ class BlockMap {
                     count ++;
                 } else {
                     if (count > 0) {
-                        block.drop(count, () => {
-                            // 填充至新的位置
-                            if (Array.isArray(this.map[row+count])) {
-                                this.map[row+count][i] = block;
-                            } else {
-                                Log.warn("位置不存在！");
-                            }
-                        })
+                        dropList.unshift({
+                            count: count,
+                            block: block
+                        });
                     }
                 }
             }
 
             // 上方生成新的格子，补足消除的空缺
-            for (let c = count; c > 0; c--) {
-                let index = count - c + 1;
-                let info: BlockInfo = Util.generateBlockInfo(-index, i, this.size);
+            for (let c = 1; c <= count; c++) {
+                // let index = count - c + 1;
+                let info: BlockInfo = Util.generateBlockInfo(-c, i, this.size);
                 let block: BlockBase = Util.createBlock(info);
                 block.addTo(this.container);
-                block.drop(count, () => {
-                    this.map[c-1][i] = block;
+                dropList.unshift({
+                    count: count,
+                    block: block
                 });
             }
+            this.dropColList(i, dropList, () => {
+                dropCount --;
+                if (dropCount == 0) {
+                    callback && callback();
+                }
+            });
         }
     }
 
@@ -113,8 +139,9 @@ class BlockMap {
                 eliminateArr[p.col] = true;
             }
         }
-        this.dropDown(eliminateArr);
-        setTimeout(callback, 400);
+        this.dropDown(eliminateArr, () => {
+            setTimeout(callback, 50);
+        });
     }
 
     /*
