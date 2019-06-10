@@ -70,13 +70,13 @@ class EliminateCheck {
                             this.settleRow(row, col, count, ret);
                         }
                     } else {
-                        this.settleRow(row, col, count, ret);
+                        this.settleRow(row, col-1, count, ret);
                         anchorType = block.type;
                         count = 1;
                     }
                 } else {
                     anchorType = null;
-                    this.settleRow(row, col, count, ret);
+                    this.settleRow(row, col-1, count, ret);
                     count = 0;
                 }
             }
@@ -95,12 +95,12 @@ class EliminateCheck {
                             this.settleCol(row, col, count, ret);
                         }
                     } else {
-                        this.settleCol(row, col, count, ret);
+                        this.settleCol(row-1, col, count, ret);
                         anchorType = block.type;
                         count = 1;
                     }
                 } else {
-                    this.settleCol(row, col, count, ret);
+                    this.settleCol(row-1, col, count, ret);
                     anchorType = null;
                     count = 0
                 }
@@ -177,13 +177,13 @@ class EliminateCheck {
     /*
      * 行扫描遇到不同的格子，需要结算结果
      * @param row 扫描所在行
-     * @param col 扫描至哪一列
+     * @param col 扫描相等列的最后一列
      * @param count 本次扫描的相同格子数量
      * @param ret 结果
     **/
     private settleRow(row: number, col: number, count: number, ret) {
         if (count >= 3) {
-            for (let i = 1; i <= count; i++) {
+            for (let i = 0; i < count; i++) {
                 ret.push({
                     row: row,
                     col: col - i
@@ -194,14 +194,14 @@ class EliminateCheck {
 
     /*
      * 列扫描遇到不同的格子，需要结算结果
-     * @param row 扫描所在列
-     * @param col 扫描至哪一行
+     * @param row 扫描相等行的最后一行
+     * @param col 扫描所在列
      * @param count 本次扫描的相同格子数量
      * @param ret 结果
     **/
     private settleCol(row: number, col: number, count: number, ret) {
         if (count >= 3) {
-            for (let i = 1; i <= count; i++) {
+            for (let i = 0; i < count; i++) {
                 ret.push({
                     row: row - i,
                     col: col
