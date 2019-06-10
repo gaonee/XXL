@@ -47,66 +47,16 @@ class EliminateCheck {
 
     /*
      * 全图扫描，计算是否存在可消除的情况。
-     * 算法原理：通过两次扫描，找到所有符合条件的格子。算法复杂度为O(n2)。详细原理如下：
+     * 算法原理：通过两次扫描，找到所有符合条件的格子。算法复杂度为O(2n)。详细原理如下：
      * 1.先逐行扫，找到连续三个或者三个以上相同格子，计入行消除列表；
      * 2.逐列扫描，找到连续三个或者三个以上相同格子，计入列消除列表；
      * 3.比较两个消除列表，找到重复的格子。（暂未实现）
     **/
     public whollyCheck(map: BlockMap): Point[] {
-        let ret: Point[] = new Array();
-        let rowArr = new Array();
-        let colArr = new Array();
+        let rowPoints = this.scanRow(map);
+        let colPoints = this.scanCol(map);
 
-        for (let row = 0; row < this.row; row++) {
-            let anchorType = null;
-            let count = 1;
-            for (let col = 0; col < this.column; col++) {
-                let block = map.get(row, col);
-                if (block != null) {
-                    if (anchorType == block.type) {
-                        count ++;
-                        // 扫描到最后一行，需要结算扫描结果。
-                        if (col == this.column-1) {
-                            this.settleRow(row, col, count, ret);
-                        }
-                    } else {
-                        this.settleRow(row, col-1, count, ret);
-                        anchorType = block.type;
-                        count = 1;
-                    }
-                } else {
-                    anchorType = null;
-                    this.settleRow(row, col-1, count, ret);
-                    count = 0;
-                }
-            }
-        }
-
-        // 扫描列
-        for (let col = 0; col < this.column; col++) {
-            let anchorType = null;
-            let count = 1;
-            for (let row = 0; row < this.row; row++) {
-                let block = map.get(row, col);
-                if (block != null) {
-                    if (anchorType == block.type) {
-                        count ++;
-                        if (row == this.row-1) {
-                            this.settleCol(row, col, count, ret);
-                        }
-                    } else {
-                        this.settleCol(row-1, col, count, ret);
-                        anchorType = block.type;
-                        count = 1;
-                    }
-                } else {
-                    this.settleCol(row-1, col, count, ret);
-                    anchorType = null;
-                    count = 0
-                }
-            }
-        }
-        return ret;
+        return rowPoints.concat(colPoints);
     }
 
     /*
@@ -171,6 +121,73 @@ class EliminateCheck {
             // 如果达成消除条件，目标格子也要参与消除
             ret.push({row: row, col: col});
         }
+        return ret;
+    }
+
+    /*
+     * 逐列扫描，找到所有纵向连续三个或者三个以上相同格子
+    **/
+    private scanCol(map: BlockMap): Point[] {
+        let ret: Point[] = new Array();
+
+        for (let col = 0; col < this.column; col++) {
+            let anchorType = null;
+            let count = 0;
+            for (let row = 0; row < this.row; row++) {
+                let block = map.get(row, col);
+                if (block != null) {
+                    if (anchorType == block.type) {
+                        count ++;
+                        if (row == this.row-1) {
+                            this.settleCol(row, col, count, ret);
+                        }
+                    } else {
+                        this.settleCol(row-1, col, count, ret);
+                        anchorType = block.type;
+                        count = 1;
+                    }
+                } else {
+                    this.settleCol(row-1, col, count, ret);
+                    anchorType = null;
+                    count = 0
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    /*
+     * 逐行扫描，找到所有横向连续三个或者三个以上相同格子
+    **/
+    private scanRow(map: BlockMap): Point[] {
+        let ret: Point[] = new Array();
+
+        for (let row = 0; row < this.row; row++) {
+            let anchorType = null;
+            let count = 0;
+            for (let col = 0; col < this.column; col++) {
+                let block = map.get(row, col);
+                if (block != null) {
+                    if (anchorType == block.type) {
+                        count ++;
+                        // 扫描到最后一行，需要结算扫描结果。
+                        if (col == this.column-1) {
+                            this.settleRow(row, col, count, ret);
+                        }
+                    } else {
+                        this.settleRow(row, col-1, count, ret);
+                        anchorType = block.type;
+                        count = 1;
+                    }
+                } else {
+                    anchorType = null;
+                    this.settleRow(row, col-1, count, ret);
+                    count = 0;
+                }
+            }
+        }
+
         return ret;
     }
 
