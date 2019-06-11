@@ -47,36 +47,11 @@ class BlockMap {
         }
     }
 
-
-    /*
-     * 填充格子
-    **/
-    public add(row: number, col: number, block: BlockBase): void {
-        if (Array.isArray(this.map[row])) {
-            this.map[row][col] = block;
-        }
-    }
-
-    /*
-     * [row]行[col]列的格子是否是[type]类型
-     * @param row 行号
-     * @param col 列号
-     * @param type 类型
-     * @param 布尔值，TRUE表示相同，FALSE表示不相同。
-    **/
-    public compare(row: number, col: number, type: number): boolean {
-        let block = this.get(row, col);
-        if (block != null) {
-            return block.type == type;
-        }
-        return false;
-    }
-
     /*
      * 填充和下落
      * @param eliminateArr 哪些列有格子消除
     **/
-    public dropDown(eliminateArr: boolean[], callback?: Function) {
+    private dropDown(eliminateArr: boolean[], callback?: Function) {
         let dropCount = 0;
         for (let i = 0; i < eliminateArr.length; i++) {
             let info = eliminateArr[i];
@@ -119,6 +94,31 @@ class BlockMap {
                 }
             });
         }
+    }
+
+
+    /*
+     * 填充格子
+    **/
+    public add(row: number, col: number, block: BlockBase): void {
+        if (Array.isArray(this.map[row])) {
+            this.map[row][col] = block;
+        }
+    }
+
+    /*
+     * [row]行[col]列的格子是否是[type]类型
+     * @param row 行号
+     * @param col 列号
+     * @param type 类型
+     * @param 布尔值，TRUE表示相同，FALSE表示不相同。
+    **/
+    public compare(row: number, col: number, type: number): boolean {
+        let block = this.get(row, col);
+        if (block != null) {
+            return block.type == type;
+        }
+        return false;
     }
 
     /*
@@ -183,6 +183,14 @@ class BlockMap {
         }
         
         return type;
+    }
+
+    public getRowAmount(): number {
+        return this.row;
+    }
+
+    public getColAmount(): number {
+        return this.column;
     }
 
     /*
