@@ -21,13 +21,8 @@ enum ELIMINATE_TYPE {
 }
 
 class EliminateCheck {
-    private row = 0;
-    private column = 0;
 
-    constructor(row: number, col: number) {
-        this.row = row;
-        this.column = col;
-    }
+    constructor() {}
 
     /*
      * 计算本次交换是否会达到消除条件，用于滑动后的首次消除。
@@ -39,10 +34,10 @@ class EliminateCheck {
      * @param dir 手指滑动方向
     **/
     public touchCheck(map: BlockMap, touchRow: number, touchCol: number, distRow: number, distCol: number, dir: number): Point[] {
-        let ret: Point[] = new Array();
-        ret = ret.concat(this.calculate(map, distRow, distCol, map.get(touchRow, touchCol), dir));
-        ret = ret.concat(this.calculate(map, touchRow, touchCol, map.get(distRow, distCol), -dir));
-        return ret;
+        let touchRet: Point[] = this.singleScan(map, distRow, distCol, map.get(touchRow, touchCol), dir);
+        let distRet: Point[] = this.singleScan(map, touchRow, touchCol, map.get(distRow, distCol), -dir);
+
+        return touchRet.concat(distRet);
     }
 
     /*
@@ -53,8 +48,8 @@ class EliminateCheck {
      * 3.比较两个消除列表，找到重复的格子。（暂未实现）
     **/
     public whollyCheck(map: BlockMap): Point[] {
-        let rowPoints = this.scanRow(map);
-        let colPoints = this.scanCol(map);
+        let rowPoints: Point[] = this.scanRow(map);
+        let colPoints: Point[] = this.scanCol(map);
 
         return rowPoints.concat(colPoints);
     }
@@ -68,26 +63,28 @@ class EliminateCheck {
      * @param dir 交换方向
      * 注意：交换方向的格子不参与计算，因为肯定无法消除。可不传，不影响正常判断。
     **/
-    private calculate(map: BlockMap, row: number, col: number, block: BlockBase, dir?: number): Point[] {
+    private singleScan(map: BlockMap, row: number, col: number, block: BlockBase, dir?: number): Point[] {
+        let rowAmount: number = map.getRowAmount();
+        let colAmount: number = map.getColAmount();
         let colArr: Point[] = new Array();
-        let rowarr: Point[] = new Array();
+        let rowArr: Point[] = new Array();
         let ret: Point[] = new Array();
         let type = block.type;
         // 左侧
         if (dir != MOVE_DIRECTION.RIGHT && col > 0) {
             if (map.compare(row, col-1, type)) {
-                rowarr.push({row: row, col: col-1});
+                rowArr.push({row: row, col: col-1});
                 if (map.compare(row, col-2, type))  {
-                    rowarr.push({row: row, col: col-2});
+                    rowArr.push({row: row, col: col-2});
                 }
             }
         }
         // 右侧
-        if (dir != MOVE_DIRECTION.LEFT && col < this.column-1) {
+        if (dir != MOVE_DIRECTION.LEFT && col < colAmount-1) {
             if (map.compare(row, col+1, type)) {
-                rowarr.push({row: row, col: col+1});
+                rowArr.push({row: row, col: col+1});
                 if (map.compare(row, col+2, type))  {
-                    rowarr.push({row: row, col: col+2});
+                    rowArr.push({row: row, col: col+2});
                 }
             }
         }
@@ -101,7 +98,7 @@ class EliminateCheck {
             }
         }
         // bottom
-        if (dir != MOVE_DIRECTION.TOP && row < this.row-1) {
+        if (dir != MOVE_DIRECTION.TOP && row < rowAmount-1) {
             if (map.compare(row+1, col, type)) {
                 colArr.push({row: row+1, col: col});
                 if (map.compare(row+2, col, type))  {
@@ -113,9 +110,9 @@ class EliminateCheck {
             ret = ret.concat(colArr);
             Log.debug("删除第 "+colArr[0].col+" 列, 起始行："+Math.min(row,colArr[0].row)+"，数量：" + (colArr.length+1));
         }
-        if (rowarr.length >= 2) {
-            ret = ret.concat(rowarr);
-            Log.debug("删除第 "+rowarr[0].row+" 行，起始列："+Math.min(col,rowarr[0].col)+"，数量：" + (rowarr.length+1));
+        if (rowArr.length >= 2) {
+            ret = ret.concat(rowArr);
+            Log.debug("删除第 "+rowArr[0].row+" 行，起始列："+Math.min(col,rowArr[0].col)+"，数量：" + (rowArr.length+1));
         }
         if (ret.length >= 2) {
             // 如果达成消除条件，目标格子也要参与消除
@@ -129,16 +126,18 @@ class EliminateCheck {
     **/
     private scanCol(map: BlockMap): Point[] {
         let ret: Point[] = new Array();
+        let rowAmount: number = map.getRowAmount();
+        let colAmount: number = map.getColAmount();
 
-        for (let col = 0; col < this.column; col++) {
+        for (let col = 0; col < colAmount; col++) {
             let anchorType = null;
             let count = 0;
-            for (let row = 0; row < this.row; row++) {
+            for (let row = 0; row < rowAmount; row++) {
                 let block = map.get(row, col);
                 if (block != null) {
                     if (anchorType == block.type) {
                         count ++;
-                        if (row == this.row-1) {
+                        if (row == rowAmount-1) {
                             this.settleCol(row, col, count, ret);
                         }
                     } else {
@@ -162,17 +161,19 @@ class EliminateCheck {
     **/
     private scanRow(map: BlockMap): Point[] {
         let ret: Point[] = new Array();
+        let rowAmount: number = map.getRowAmount();
+        let colAmount: number = map.getColAmount();
 
-        for (let row = 0; row < this.row; row++) {
+        for (let row = 0; row < rowAmount; row++) {
             let anchorType = null;
             let count = 0;
-            for (let col = 0; col < this.column; col++) {
+            for (let col = 0; col < colAmount; col++) {
                 let block = map.get(row, col);
                 if (block != null) {
                     if (anchorType == block.type) {
                         count ++;
                         // 扫描到最后一行，需要结算扫描结果。
-                        if (col == this.column-1) {
+                        if (col == colAmount-1) {
                             this.settleRow(row, col, count, ret);
                         }
                     } else {
@@ -225,5 +226,12 @@ class EliminateCheck {
                 });
             }
         }
+    }
+
+    /*
+     * 计算本次消除的类型
+    **/
+    private calculateType(): ELIMINATE_TYPE {
+        return ELIMINATE_TYPE.ROW_LINE_THREE;
     }
 }
