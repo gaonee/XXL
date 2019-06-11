@@ -48,11 +48,14 @@ interface BlockInfo {
 }
 
 /*
- * 标记每列的消除信息
- * start表示该列中，是从哪一行开始消除的
- * count表示该列一共消除多少行
+ * 消除信息，不同的类型有不同的消除方式
+ * type     消除类型，三消、四消等
+ * points   消除的点的位置构成的数组
+ * keyPoint 关键点，即交换位置，该次交换动作产生了本次消除的结果，
+ * 该位置用于确定特效生成的位置
 **/
 interface EliminationInfo {
-    start: number;
-    count: number;
+    type: ELIMINATE_TYPE;
+    points: Point[];
+    keyPoint: Point
 }
