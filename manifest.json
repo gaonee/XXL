@@ -1,0 +1,32 @@
+{
+	"initial": [
+		"libs/modules/egret/egret.js",
+		"libs/modules/egret/egret.web.js",
+		"libs/modules/game/game.js",
+		"libs/modules/tween/tween.js",
+		"libs/modules/assetsmanager/assetsmanager.js",
+		"libs/modules/eui/eui.js",
+		"libs/modules/socket/socket.js",
+		"libs/modules/promise/promise.js"
+	],
+	"game": [
+		"bin-debug/block/BlockBase.js",
+		"bin-debug/block/BlockGreen.js",
+		"bin-debug/Main.js",
+		"bin-debug/MapContainer.js",
+		"bin-debug/Platform.js",
+		"bin-debug/XXL.js",
+		"bin-debug/Control.js",
+		"bin-debug/block/BlockBlack.js",
+		"bin-debug/block/BlockBlue.js",
+		"bin-debug/LoadingUI.js",
+		"bin-debug/block/BlockGrey.js",
+		"bin-debug/block/BlockRed.js",
+		"bin-debug/map/BlockMap.js",
+		"bin-debug/map/DeadMapCheck.js",
+		"bin-debug/map/EliminateCheck.js",
+		"bin-debug/utils/Constants.js",
+		"bin-debug/utils/Log.js",
+		"bin-debug/utils/Util.js"
+	]
+}

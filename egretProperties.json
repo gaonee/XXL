@@ -1,6 +1,6 @@
 {
-  "engineVersion": "5.3.2",
-  "compilerVersion": "5.3.2",
+  "engineVersion": "5.2.20",
+  "compilerVersion": "5.2.20",
   "template": {},
   "target": {
     "current": "web"
@@ -19,13 +19,19 @@
       "name": "assetsmanager"
     },
     {
-      "name": "socket"
+      "name": "eui"
     },
     {
-      "name": "eui"
+      "name": "socket"
     },
     {
       "name": "promise"
     }
-  ]
+  ],
+  "targets": {
+    "android": {
+      "appname": "消消乐",
+      "packagename": "com.companyname"
+    }
+  }
 }
