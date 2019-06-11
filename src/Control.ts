@@ -12,6 +12,7 @@ class Control {
     private container: egret.DisplayObjectContainer;
     private map: BlockMap = null;
     private eliminateCheck: EliminateCheck = null;
+    private deadMapCheck: DeadMapCheck = null;
     private size: number = 0;
     private touchX: number = 0;
     private touchY: number = 0;
@@ -23,7 +24,8 @@ class Control {
         this.container = container;
         this.size = this.container.width / 9;
         this.map = new BlockMap(container, this.row, this.column, this.size);
-        this.eliminateCheck = new EliminateCheck(this.row, this.column);
+        this.eliminateCheck = new EliminateCheck();
+        this.deadMapCheck = new DeadMapCheck();
 
         this.initMap();
     }
@@ -123,8 +125,6 @@ class Control {
                 this.status = BLOCK_STATUS.ELIMINATION;
                 this.map.exchange(touchRow, touchCol, distRow, distCol);
                 this.map.eliminate(ret, () => {
-                    // 
-                    this.checkMap();
                     this.whoolyEliminate();
                 });
             } else {
@@ -148,7 +148,6 @@ class Control {
             Log.debug("Finish eliminate.");
             this.status = BLOCK_STATUS.READY;
             this.checkMap();
-            console.log(this.map)
         }
     }
 
@@ -163,7 +162,7 @@ class Control {
                 this.map.add(i, j, Util.createBlock(info))
             }
         }
-        if (DeadMapCheck.check(this.map, this.row, this.column)) {
+        if (this.deadMapCheck.check(this.map)) {
             Log.debug("DEAD MAP! so that we will create the map again.");
             this.initMap();
         } else {
