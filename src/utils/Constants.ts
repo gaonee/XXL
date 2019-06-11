@@ -14,6 +14,8 @@ const enum MOVE_DIRECTION {
 const enum BLOCK_STATUS {
     /* 准备状态 */
     READY,
+    /* 选中格子 */
+    CHECKED,
     /* 手指滑动中 */
     TOUCH_MOVE,
     /* 格子正在交换中 */

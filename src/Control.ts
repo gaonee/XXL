@@ -19,6 +19,8 @@ class Control {
     private status: number = BLOCK_STATUS.READY;
     private readonly row: number = 9;
     private readonly column: number = 9;
+    // 一次touchBegin只能执行一次交换动作，后面的滑动会屏蔽
+    private canExchange: boolean = true;
 
     constructor(container: egret.DisplayObjectContainer) {
         this.container = container;
@@ -53,17 +55,27 @@ class Control {
             this.map.risingTop(touchRow, touchCol);
             this.touchX = evt.localX;
             this.touchY = evt.localY;
+            this.status = BLOCK_STATUS.CHECKED;
+            // 此处设置为true，防止出现onTouchEnd事件异常的情况，保证每次拖动正常执行。
+            this.canExchange = true;
         }
     }
 
     private onTouchEnd(evt: egret.TouchEvent) {
+        // 只有一次touch事件完整结束时，才能进行下一次的交换动作。
         if (this.status == BLOCK_STATUS.TOUCH_MOVE) {
             this.status = BLOCK_STATUS.READY;
         }
+        this.canExchange = true;
     }
 
     private onTouchMove(evt: egret.TouchEvent) {
-        if (this.status == BLOCK_STATUS.READY) {
+        if (!this.canExchange) {
+            return;
+        }
+
+        /* 选中格子后才能进行下一步操作 */
+        if (this.status == BLOCK_STATUS.CHECKED) {
             this.status = BLOCK_STATUS.TOUCH_MOVE;
         }
 
@@ -103,6 +115,7 @@ class Control {
                 this.map.get(touchRow, touchCol) == null) {
                 this.status = BLOCK_STATUS.READY;
             } else {
+                this.canExchange = false;
                 this.change(touchRow, touchCol, changeRow, changeCol, dir);
             }
         }
