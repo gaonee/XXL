@@ -50,14 +50,17 @@ interface BlockInfo {
 }
 
 /*
- * 消除信息，不同的类型有不同的消除方式
- * type     消除类型，三消、四消等
+ * 消除信息，用来确定消除方式
+ * type     消除类型，包括三消、四消、五消、T型、L型等
  * points   消除的点的位置构成的数组
- * keyPoint 关键点，即交换位置，该次交换动作产生了本次消除的结果，
- * 该位置用于确定特效生成的位置
+ * keyPoint 关键点，该位置用于确定特效生成的位置，有以下几种情况：
+ *   1.交换消除，使用交换产生的位置；
+ *   2.T型或者L型消除的交接处；
+ *   3.下落产生的直线消除，使用运动产生接触的点。
+ *   注意：可选字段，消除产生特效时才携带。
 **/
 interface EliminationInfo {
     type: ELIMINATE_TYPE;
     points: Point[];
-    keyPoint: Point
+    keyPoint?: Point
 }
