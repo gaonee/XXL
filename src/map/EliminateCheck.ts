@@ -231,7 +231,44 @@ class EliminateCheck {
     /*
      * 计算本次消除的类型
     **/
-    private calculateType(): ELIMINATE_TYPE {
-        return ELIMINATE_TYPE.ROW_LINE_THREE;
+    private calculateType(rowArr: Point[], colArr: Point[], keyPoint: Point): EliminationInfo {
+        let eliminateType: ELIMINATE_TYPE = null;
+        let eliminatePoints: Point[] = null;
+
+        if (Array.isArray(rowArr) && rowArr.length >= 3) {
+            if (Array.isArray(colArr) && colArr.length >= 3) {
+                // L型，keyPoint处在rowArr和colArr的两端
+                // T型，keyPoint分别处在rowArr和colArr的两端和中间
+            } else {
+                // 横向线性消除
+                let len = rowArr.length;
+                if (len == 3) {
+                    eliminateType = ELIMINATE_TYPE.ROW_LINE_THREE;
+                } else if (len == 4) {
+                    eliminateType = ELIMINATE_TYPE.ROW_LINE_FOUR;
+                } else {
+                    eliminateType = ELIMINATE_TYPE.ROW_LINE_FIVE;
+                }
+                eliminatePoints = rowArr;
+            }
+        } else {
+            // 纵向线性消除
+            if (Array.isArray(colArr) && colArr.length >= 3) {
+                let len = colArr.length;
+                if (len == 3) {
+                    eliminateType = ELIMINATE_TYPE.COL_LINE_THREE;
+                } else if (len == 4) {
+                    eliminateType = ELIMINATE_TYPE.COL_LINE_FOUR;
+                } else {
+                    eliminateType = ELIMINATE_TYPE.COL_LINE_FIVE;
+                }
+                eliminatePoints = colArr;
+            }
+        }
+        return {
+            type: eliminateType,
+            points: eliminatePoints,
+            keyPoint: keyPoint
+        };
     }
 }
