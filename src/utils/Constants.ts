@@ -59,7 +59,7 @@ interface BlockInfo {
  *   3.下落产生的直线消除，使用运动产生接触的点。
  *   注意：可选字段，消除产生特效时才携带。
 **/
-interface EliminationInfo {
+interface EliminateInfo {
     type: ELIMINATE_TYPE;
     points: Point[];
     keyPoint?: Point

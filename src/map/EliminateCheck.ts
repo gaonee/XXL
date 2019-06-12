@@ -4,8 +4,9 @@
 //  All rights reserved.
 //  Author: Ma Jian
 //  Email:  841374169@qq.com
-//  判断是否达到消除条件，以及判断消除类型，是线型三消、四消还是五消，或者T型消除、L型消除。
-//  其中，线性消除又分为横向和纵向两种。
+//  判断是否达到消除条件，以及判断消除类型。消除类型分为线性和非线性消除。
+//  线性消除包含横向和纵向两种。具体又分为三消、四消和五消。
+//  非线性消除包含T型消除、L型消除，两种方式可做一种类型处理。
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -16,8 +17,7 @@ enum ELIMINATE_TYPE {
     COL_LINE_THREE,
     COL_LINE_FOUR,
     COL_LINE_FIVE,
-    L_TYPE,
-    T_TYPE
+    NON_LINE
 }
 
 class EliminateCheck {
@@ -70,12 +70,16 @@ class EliminateCheck {
         let rowArr: Point[] = new Array();
         let ret: Point[] = new Array();
         let type = block.type;
+
+        rowArr.push({row: row, col: col});
+        colArr.push({row: row, col: col});
+
         // 左侧
         if (dir != MOVE_DIRECTION.RIGHT && col > 0) {
             if (map.compare(row, col-1, type)) {
-                rowArr.push({row: row, col: col-1});
+                rowArr.unshift({row: row, col: col-1});
                 if (map.compare(row, col-2, type))  {
-                    rowArr.push({row: row, col: col-2});
+                    rowArr.unshift({row: row, col: col-2});
                 }
             }
         }
@@ -91,9 +95,9 @@ class EliminateCheck {
         // above
         if (dir != MOVE_DIRECTION.BOTTOM && row > 0) {
             if (map.compare(row-1, col, type)) {
-                colArr.push({row: row-1, col: col});
+                colArr.unshift({row: row-1, col: col});
                 if (map.compare(row-2, col, type))  {
-                    colArr.push({row: row-2, col: col});
+                    colArr.unshift({row: row-2, col: col});
                 }
             }
         }
@@ -106,18 +110,15 @@ class EliminateCheck {
                 }
             }
         }
-        if (colArr.length >= 2) {
+        if (colArr.length >= 3) {
             ret = ret.concat(colArr);
-            Log.debug("删除第 "+colArr[0].col+" 列, 起始行："+Math.min(row,colArr[0].row)+"，数量：" + (colArr.length+1));
+            Log.debug("删除第 "+colArr[0].col+" 列, 起始行："+colArr[0].row+"，数量：" + colArr.length);
         }
-        if (rowArr.length >= 2) {
+        if (rowArr.length >= 3) {
             ret = ret.concat(rowArr);
-            Log.debug("删除第 "+rowArr[0].row+" 行，起始列："+Math.min(col,rowArr[0].col)+"，数量：" + (rowArr.length+1));
+            Log.debug("删除第 "+rowArr[0].row+" 行，起始列："+rowArr[0].col+"，数量：" + rowArr.length);
         }
-        if (ret.length >= 2) {
-            // 如果达成消除条件，目标格子也要参与消除
-            ret.push({row: row, col: col});
-        }
+        this.getEliminateInfo(rowArr, colArr, {row: row, col: col});
         return ret;
     }
 
@@ -230,8 +231,12 @@ class EliminateCheck {
 
     /*
      * 计算本次消除的类型
+     * @param rowArr 消除的行，可为空；不为空时需按行号从小到大排列。
+     * @param colArr 消除的列，可为空；不为空时需按列号从小到大排列。
+     * @param keyPoint 关键点，参考 EliminateInfo 中的说明。
+     * @return EliminateInfo
     **/
-    private calculateType(rowArr: Point[], colArr: Point[], keyPoint: Point): EliminationInfo {
+    private getEliminateInfo(rowArr: Point[], colArr: Point[], keyPoint: Point): EliminateInfo {
         let eliminateType: ELIMINATE_TYPE = null;
         let eliminatePoints: Point[] = null;
 
@@ -239,6 +244,13 @@ class EliminateCheck {
             if (Array.isArray(colArr) && colArr.length >= 3) {
                 // L型，keyPoint处在rowArr和colArr的两端
                 // T型，keyPoint分别处在rowArr和colArr的两端和中间
+                // if ((keyPoint.col != rowArr[0].col && keyPoint.col != rowArr[rowArr.length-1].col) ||
+                //     (keyPoint.row != colArr[0].row && keyPoint.row != colArr[colArr.length-1].row)) {
+                //     eliminateType = ELIMINATE_TYPE.T_TYPE;
+                // } else {
+                //     eliminateType = ELIMINATE_TYPE.L_TYPE;
+                // }
+                eliminateType = ELIMINATE_TYPE.NON_LINE;
             } else {
                 // 横向线性消除
                 let len = rowArr.length;
@@ -265,6 +277,7 @@ class EliminateCheck {
                 eliminatePoints = colArr;
             }
         }
+        Log.debug("eliminateType: " + eliminateType);
         return {
             type: eliminateType,
             points: eliminatePoints,
