@@ -14,6 +14,8 @@ class BlockMap {
     private row: number = 0;
     private column: number = 0;
     private size: number = 0;
+    // 标识哪一列有格子消除，并记录每列最下方的消除位置
+    private eliminateCol: number[] = null;
 
     constructor(container: egret.DisplayObjectContainer, row: number, col: number, size: number) {
         if (container == null) return;
@@ -51,10 +53,10 @@ class BlockMap {
      * 填充和下落
      * @param eliminateArr 哪些列有格子消除
     **/
-    private dropDown(eliminateArr: boolean[], callback?: Function) {
+    private dropDown(callback?: Function) {
         let dropCount = 0;
-        for (let i = 0; i < eliminateArr.length; i++) {
-            let info = eliminateArr[i];
+        for (let i = 0; i < this.column; i++) {
+            let info = this.eliminateCol[i];
             if (info == undefined) continue;
 
             let count = 0;
@@ -96,6 +98,23 @@ class BlockMap {
         }
     }
 
+    /*
+     * 消除目标格子。
+     * @param points 需要消除的格子的位置组成的数组
+    **/
+    private eliminateBlocks(points: Point[]) {
+        for (let i = 0; i < points.length; i++) {
+            let p = points[i];
+            let block = this.get(p.row, p.col);
+            if (block == null) continue;
+
+            this.container.removeChild(block.getObject());
+            this.map[p.row][p.col] = null;
+
+            this.eliminateCol[p.col] = this.eliminateCol[p.col] == undefined ? p.row : Math.max(p.row, this.eliminateCol[p.col]);
+        }
+    }
+
 
     /*
      * 填充格子
@@ -122,24 +141,38 @@ class BlockMap {
     }
 
     /*
-     * 消除目标格子。
-     * @param points 需要消除的格子的位置组成的数组
+     * 特效消除
+     * @param eliminateList EliminateInfo组成的数组
     **/
-    public eliminate(points: Point[], callback: Function) {
-        let eliminateArr: boolean[] = new Array(this.column);
-        for (let i = 0; i < points.length; i++) {
-            let p = points[i];
-            let block = this.get(p.row, p.col);
-            if (block == null) continue;
-
-            this.container.removeChild(block.getObject());
-            this.map[p.row][p.col] = null;
-
-            if (eliminateArr[p.col] == undefined) {
-                eliminateArr[p.col] = true;
+    public effectsEliminate(eliminateList: EliminateInfo[], callback: Function) {
+        this.eliminateCol = new Array(this.column);
+        for (let i = 0; i < eliminateList.length; i++) {
+            let eliminateInfo = eliminateList[i];
+            if (!Array.isArray(eliminateInfo.points)) {
+                Log.warn("effectsEliminate, points is null");
+                continue;
+            }
+            this.eliminateBlocks(eliminateInfo.points);
+            switch (eliminateInfo.type) {
+                case ELIMINATE_TYPE.COL_LINE_THREE:
+                case ELIMINATE_TYPE.ROW_LINE_THREE: {
+                    break;
+                }
+                case ELIMINATE_TYPE.ROW_LINE_FOUR:
+                case ELIMINATE_TYPE.ROW_LINE_FIVE:
+                case ELIMINATE_TYPE.COL_LINE_FOUR:
+                case ELIMINATE_TYPE.COL_LINE_FIVE:
+                case ELIMINATE_TYPE.NON_LINE: {
+                    Log.debug("effectsEliminate, type: " + eliminateInfo.type + "; keyPoint, row: " + eliminateInfo.keyPoint.row+",col:" + eliminateInfo.keyPoint.col);
+                    break;
+                }
+                default: {
+                    break;
+                }
             }
         }
-        this.dropDown(eliminateArr, () => {
+
+        this.dropDown(() => {
             setTimeout(callback, 50);
         });
     }
@@ -191,6 +224,10 @@ class BlockMap {
 
     public getColAmount(): number {
         return this.column;
+    }
+
+    public hasDrop(row: number, col: number): boolean {
+        return this.eliminateCol[col] != undefined && this.eliminateCol[col] >= row;
     }
 
     /*
