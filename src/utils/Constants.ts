@@ -64,3 +64,13 @@ interface EliminateInfo {
     points: Point[];
     keyPoint?: Point
 }
+
+enum ELIMINATE_TYPE {
+    ROW_LINE_THREE,
+    ROW_LINE_FOUR,
+    ROW_LINE_FIVE,
+    COL_LINE_THREE,
+    COL_LINE_FOUR,
+    COL_LINE_FIVE,
+    NON_LINE
+}
