@@ -14,12 +14,7 @@ class BlockBlack extends BlockBase {
         super(info);
     }
 
-    public initBlock(x, y, w, h): egret.DisplayObject {
-        var shp: egret.Shape = new egret.Shape();
-        shp.graphics.beginFill( 0x000000 );
-        shp.graphics.drawRect( x, y, w, h );
-        shp.graphics.endFill();
-        
-        return shp;
+    public getImgRes() {
+        return "bear_png";
     }
 }

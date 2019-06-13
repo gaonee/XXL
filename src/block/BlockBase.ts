@@ -11,6 +11,7 @@
 class BlockBase {
     public block: egret.DisplayObject;
     public info: BlockInfo;
+    public imgRes: string = "bear_png";
     public readonly type: number = BLOCK_TYPE.GREEN;
     public readonly border: number = 2;
     
@@ -22,13 +23,27 @@ class BlockBase {
         let height = info.height - (this.border*2);
 
         this.info = info;
-        this.block = this.initBlock(x, y, width, height);
+        this.block = this.initBitmap(x, y, width, height);
     }
 
     // public functions
 
     public addTo(container: egret.DisplayObjectContainer) {
         container.addChild(this.block);
+    }
+
+    /**
+     * Create bitmap by resource name
+     */
+    public createBitmapByName(name: string) {
+        let result = new egret.Bitmap();
+        let texture: egret.Texture = RES.getRes(name);
+        result.texture = texture;
+        return result;
+    }
+
+    public getImgRes() {
+        return "bear_png";
     }
 
     public getObject(): egret.DisplayObject {
@@ -48,6 +63,16 @@ class BlockBase {
         shp.graphics.beginFill( 0x00ff00 );
         shp.graphics.drawRect( x, y, w, h );
         shp.graphics.endFill();
+        
+        return shp;
+    }
+
+    public initBitmap(x, y, w, h) {
+        let shp = this.createBitmapByName(this.getImgRes());
+        shp.x = x;
+        shp.y = y;
+        shp.width = w;
+        shp.height = h;
         
         return shp;
     }
