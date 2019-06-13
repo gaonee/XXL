@@ -132,12 +132,12 @@ class Control {
 
         this.status = BLOCK_STATUS.MOVING;
         touchBlock.change(dir, () => {
-            let ret: Point[] = this.eliminateCheck.touchCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
+            let ret: EliminateInfo[] = this.eliminateCheck.touchCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
             if (ret.length > 0) {
                 Log.debug("Start eliminate.");
                 this.status = BLOCK_STATUS.ELIMINATION;
                 this.map.exchange(touchRow, touchCol, distRow, distCol);
-                this.map.eliminate(ret, () => {
+                this.map.effectsEliminate(ret, () => {
                     this.whoolyEliminate();
                 });
             } else {
@@ -152,9 +152,9 @@ class Control {
     }
 
     private whoolyEliminate() {
-        let ret = this.eliminateCheck.whollyCheck(this.map);
+        let ret: EliminateInfo[] = this.eliminateCheck.whollyCheck(this.map);
         if (ret.length > 0) {
-            this.map.eliminate(ret, () => {
+            this.map.effectsEliminate(ret, () => {
                 this.whoolyEliminate();
             });
         } else {
