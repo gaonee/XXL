@@ -10,17 +10,19 @@
 
 class BlockBase {
     public block: egret.DisplayObject;
+    public mc: egret.MovieClip;
     public info: BlockInfo;
     public imgRes: string = "bear_png";
     public readonly type: number = BLOCK_TYPE.GREEN;
-    public readonly border: number = 2;
+    public readonly borderRatio: number = 0.1;
     
     public constructor(info: BlockInfo) {
         // deduct border
-        let x = info.col * info.width + this.border;
-        let y = info.row * info.height + this.border;
-        let width = info.width - (this.border*2);
-        let height = info.height - (this.border*2);
+        let borderSize = info.width * this.borderRatio;
+        let x = info.col * info.width + borderSize;
+        let y = info.row * info.height + borderSize;
+        let width = info.width - (borderSize*2);
+        let height = info.height - (borderSize*2);
 
         this.info = info;
         this.block = this.initBitmap(x, y, width, height);
@@ -40,41 +42,6 @@ class BlockBase {
         let texture: egret.Texture = RES.getRes(name);
         result.texture = texture;
         return result;
-    }
-
-    public getImgRes() {
-        return "bear_png";
-    }
-
-    public getObject(): egret.DisplayObject {
-        return this.block;
-    }
-
-    public getRow(): number {
-        return this.info.row;
-    }
-
-    public getCol() : number {
-        return this.info.col;
-    }
-
-    public initBlock(x, y, w, h): egret.DisplayObject {
-        var shp: egret.Shape = new egret.Shape();
-        shp.graphics.beginFill( 0x00ff00 );
-        shp.graphics.drawRect( x, y, w, h );
-        shp.graphics.endFill();
-        
-        return shp;
-    }
-
-    public initBitmap(x, y, w, h) {
-        let shp = this.createBitmapByName(this.getImgRes());
-        shp.x = x;
-        shp.y = y;
-        shp.width = w;
-        shp.height = h;
-        
-        return shp;
     }
 
     public change(dir:number, callback?:Function, waitTime?:number) {
@@ -125,12 +92,53 @@ class BlockBase {
         let tw = egret.Tween.get(this.block);
         tw.wait(100).to({
             y: this.block.y + this.info.height*count
-        }, 150, egret.Ease.quadInOut).call(() => {
+        }, 200, egret.Ease.quartIn).call(() => {
             this.info.row += count;
             egret.Tween.removeTweens(tw);
             if (callback) {
                 callback();
             }
         });
+    }
+
+    public getBgImg() {}
+
+    public getImgRes() {
+        return "bear_png";
+    }
+
+    public getObject(): egret.DisplayObject {
+        return this.block;
+    }
+
+    public getRow(): number {
+        return this.info.row;
+    }
+
+    public getCol() : number {
+        return this.info.col;
+    }
+
+    public initBitmap(x, y, w, h) {
+        let shp = this.createBitmapByName(this.getImgRes());
+        shp.x = x;
+        shp.y = y;
+        shp.width = w;
+        shp.height = h;
+        
+        return shp;
+    }
+
+    public initAnimation(x, y, w, h) {
+        let data = RES.getRes("aaa_json");
+        let txtr = RES.getRes("aaa_png");
+        let mcFactory: egret.MovieClipDataFactory = new egret.MovieClipDataFactory( data, txtr );
+        let mcCreate: egret.MovieClip = new egret.MovieClip( mcFactory.generateMovieClipData( "MapIcon_People_Alarm" ) );
+        // mcCreate.gotoAndPlay(0);
+        mcCreate.x = x;
+        mcCreate.y = y;
+        mcCreate.width = w;
+        mcCreate.height = h;
+        this.mc = mcCreate;
     }
 }
