@@ -63,7 +63,8 @@ class Control {
 
     private onTouchEnd(evt: egret.TouchEvent) {
         // 只有一次touch事件完整结束时，才能进行下一次的交换动作。
-        if (this.status == BLOCK_STATUS.TOUCH_MOVE) {
+        if (this.status == BLOCK_STATUS.TOUCH_MOVE ||
+            this.status == BLOCK_STATUS.CHECKED) {
             this.status = BLOCK_STATUS.READY;
         }
         this.canExchange = true;
