@@ -9,8 +9,8 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class BlockBase {
-    public block: egret.DisplayObject;
-    public mc: egret.MovieClip;
+    private block: egret.DisplayObject & egret.MovieClip;
+    public mc: egret.MovieClip = null;
     public info: BlockInfo;
     public imgRes: string = "bear_png";
     public readonly type: number = BLOCK_TYPE.GREEN;
@@ -25,23 +25,13 @@ class BlockBase {
         let height = info.height - (borderSize*2);
 
         this.info = info;
-        this.block = this.initBitmap(x, y, width, height);
+        this.block = this.initAnimation(x, y, width, height);
     }
 
     // public functions
 
     public addTo(container: egret.DisplayObjectContainer) {
         container.addChild(this.block);
-    }
-
-    /**
-     * Create bitmap by resource name
-     */
-    public createBitmapByName(name: string) {
-        let result = new egret.Bitmap();
-        let texture: egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
     }
 
     public change(dir:number, callback?:Function, waitTime?:number) {
@@ -120,7 +110,7 @@ class BlockBase {
     }
 
     public initBitmap(x, y, w, h) {
-        let shp = this.createBitmapByName(this.getImgRes());
+        let shp = Util.createBitmapByName(this.getImgRes());
         shp.x = x;
         shp.y = y;
         shp.width = w;
@@ -129,16 +119,13 @@ class BlockBase {
         return shp;
     }
 
-    public initAnimation(x, y, w, h) {
-        let data = RES.getRes("aaa_json");
-        let txtr = RES.getRes("aaa_png");
-        let mcFactory: egret.MovieClipDataFactory = new egret.MovieClipDataFactory( data, txtr );
-        let mcCreate: egret.MovieClip = new egret.MovieClip( mcFactory.generateMovieClipData( "MapIcon_People_Alarm" ) );
-        // mcCreate.gotoAndPlay(0);
+    public initAnimation(x, y, w, h): egret.MovieClip {
+        let mcCreate: egret.MovieClip = Util.createMCByName("mcbear");
         mcCreate.x = x;
         mcCreate.y = y;
         mcCreate.width = w;
         mcCreate.height = h;
         this.mc = mcCreate;
+        return mcCreate;
     }
 }
