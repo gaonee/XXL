@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json",
+			"keys": "bg_jpg,egret_icon_png,description_json,mcbear_json,mcbear_png",
 			"name": "preload"
 		},
 		{
@@ -54,6 +54,16 @@
 			"url": "assets/animals/owl.png",
 			"type": "image",
 			"name": "owl_png"
+		},
+		{
+			"url": "animation/bear/mcbear.json",
+			"type": "json",
+			"name": "mcbear_json"
+		},
+		{
+			"url": "animation/bear/mcbear.png",
+			"type": "image",
+			"name": "mcbear_png"
 		}
 	]
 }

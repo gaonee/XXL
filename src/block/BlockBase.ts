@@ -9,23 +9,16 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class BlockBase {
-    private block: egret.DisplayObject & egret.MovieClip;
-    public mc: egret.MovieClip = null;
+    public block: egret.DisplayObject;
     public info: BlockInfo;
     public imgRes: string = "bear_png";
-    public readonly type: number = BLOCK_TYPE.GREEN;
+    public type: number = BLOCK_TYPE.GREEN;
     public readonly borderRatio: number = 0.1;
     
     public constructor(info: BlockInfo) {
-        // deduct border
-        let borderSize = info.width * this.borderRatio;
-        let x = info.col * info.width + borderSize;
-        let y = info.row * info.height + borderSize;
-        let width = info.width - (borderSize*2);
-        let height = info.height - (borderSize*2);
-
         this.info = info;
-        this.block = this.initAnimation(x, y, width, height);
+        this.draw();
+        this.setSize();
     }
 
     // public functions
@@ -78,6 +71,10 @@ class BlockBase {
         }
     }
 
+    public draw() {
+        this.block = Util.createBitmapByName(this.getImgRes());
+    }
+
     public drop(count: number, callback?: Function) {
         let tw = egret.Tween.get(this.block);
         tw.wait(100).to({
@@ -101,6 +98,10 @@ class BlockBase {
         return this.block;
     }
 
+    public getBlockInfo(): BlockInfo {
+        return this.info;
+    }
+
     public getRow(): number {
         return this.info.row;
     }
@@ -109,23 +110,16 @@ class BlockBase {
         return this.info.col;
     }
 
-    public initBitmap(x, y, w, h) {
-        let shp = Util.createBitmapByName(this.getImgRes());
-        shp.x = x;
-        shp.y = y;
-        shp.width = w;
-        shp.height = h;
-        
-        return shp;
+    public setSize() {
+        let borderSize = this.info.width * this.borderRatio;
+
+        this.block.x = this.info.col * this.info.width + borderSize;
+        this.block.y = this.info.row * this.info.height + borderSize;
+        this.block.width = this.info.width - (borderSize*2);
+        this.block.height = this.info.height - (borderSize*2);
     }
 
-    public initAnimation(x, y, w, h): egret.MovieClip {
-        let mcCreate: egret.MovieClip = Util.createMCByName("mcbear");
-        mcCreate.x = x;
-        mcCreate.y = y;
-        mcCreate.width = w;
-        mcCreate.height = h;
-        this.mc = mcCreate;
-        return mcCreate;
+    public setType(type: BLOCK_TYPE) {
+        this.type = type;
     }
 }

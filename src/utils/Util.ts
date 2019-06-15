@@ -49,14 +49,13 @@ class Util {
         return mc;
     }
 
-    public static generateBlockInfo(row: number, col: number, size: number, state?: EFFECT_STATE): BlockInfo {
+    public static generateBlockInfo(row: number, col: number, size: number): BlockInfo {
         return {
             row: row,
             col: col,
             width: size,
             height: size,
-            type: this.random(1, BLOCK_NUM),
-            state: state
+            type: this.random(1, BLOCK_NUM)
         };
     }
 

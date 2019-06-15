@@ -152,6 +152,7 @@ class BlockMap {
                 Log.warn("effectsEliminate, points is null");
                 continue;
             }
+            let copyInfo: BlockInfo = this.get(eliminateInfo.points[0].row, eliminateInfo.points[0].col).getBlockInfo();
             this.eliminateBlocks(eliminateInfo.points);
             switch (eliminateInfo.type) {
                 case ELIMINATE_TYPE.COL_LINE_THREE:
@@ -163,7 +164,20 @@ class BlockMap {
                 case ELIMINATE_TYPE.COL_LINE_FOUR:
                 case ELIMINATE_TYPE.COL_LINE_FIVE:
                 case ELIMINATE_TYPE.NON_LINE: {
-                    Log.debug("effectsEliminate, type: " + eliminateInfo.type + "; keyPoint, row: " + eliminateInfo.keyPoint.row+",col:" + eliminateInfo.keyPoint.col);
+                    let keyPoint = eliminateInfo.keyPoint;
+                    let blockInfo = {
+                        row: keyPoint.row,
+                        col: keyPoint.col,
+                        width: copyInfo.width,
+                        height: copyInfo.height,
+                        type: copyInfo.type,
+                        effectType: EFFECT_TYPE.COL_LINE
+                    }
+                    let block = new RowEffect(blockInfo);
+                    block.addTo(this.container);
+                    block.play();
+                    this.map[keyPoint.row][keyPoint.col] = block;
+                    Log.debug("effectsEliminate, type: " + eliminateInfo.type + "; keyPoint, row: " + keyPoint.row+",col:" + keyPoint.col);
                     break;
                 }
                 default: {
