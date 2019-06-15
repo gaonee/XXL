@@ -22,13 +22,41 @@ class Util {
         }
     }
 
-    public static generateBlockInfo(row: number, col: number, size: number): BlockInfo {
+    /**
+     * Create Bitmap by resource name
+     * @param name Resource name
+     * @return object of egret.Bitmap
+     */
+    public static createBitmapByName(name: string): egret.Bitmap {
+        let result = new egret.Bitmap();
+        let texture: egret.Texture = RES.getRes(name);
+        result.texture = texture;
+        return result;
+    }
+
+    /**
+     * Create MovieClip by resource name
+     * @param name Resource name without '_json' & '_png' suffix
+     * @param clipName To create MovieClip
+     * @return object of egret.MovieClip
+     */
+    public static createMCByName(name: string, clipName?: string): egret.MovieClip {
+        let data = RES.getRes(name + "_json");
+        let txtr = RES.getRes(name + "_png");
+        let mcFactory: egret.MovieClipDataFactory = new egret.MovieClipDataFactory( data, txtr );
+        let mc: egret.MovieClip = new egret.MovieClip(mcFactory.generateMovieClipData(clipName || ""));
+
+        return mc;
+    }
+
+    public static generateBlockInfo(row: number, col: number, size: number, state?: EFFECT_STATE): BlockInfo {
         return {
             row: row,
             col: col,
             width: size,
             height: size,
-            type: this.random(1, BLOCK_NUM)
+            type: this.random(1, BLOCK_NUM),
+            state: state
         };
     }
 
