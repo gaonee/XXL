@@ -67,8 +67,16 @@ class Main extends egret.DisplayObjectContainer {
         let width = this.stage.stageWidth;
         let height = this.stage.stageHeight;
 
-        // let upView = new ViewContainer(0, 0, width, (height-width)/2);
-        // this.addChild(upView);
+        let upView = new egret.DisplayObjectContainer();
+        upView.x = 0;
+        upView.y = 0;
+        upView.width = width;
+        upView.height = (height-width)/2;
+        this.addChild(upView);
+
+        let mc = Util.createMCByName("mcbear");
+        upView.addChild(mc);
+        mc.gotoAndPlay("lateral", -1);
 
         let mapView = new MapContainer(0, (height-width)/2, width, width);
         this.addChild(mapView);
