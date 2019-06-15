@@ -34,6 +34,16 @@ const enum BLOCK_TYPE {
     BLACK
 }
 
+/*
+ * 特效状态:横向特效，纵向特效，爆炸特效，魔力鸟特效
+**/
+const enum EFFECT_STATE {
+    LATERAL,
+    LENGTHWAYS,
+    BOMB,
+    MAGIC_BIRD
+}
+
 const BLOCK_NUM = 5;
 
 interface Point {
@@ -46,7 +56,8 @@ interface BlockInfo {
     col: number;
     width: number;
     height: number;
-    type: number;
+    type: BLOCK_TYPE;
+    state?: EFFECT_STATE
 }
 
 /*
