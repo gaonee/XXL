@@ -9,13 +9,22 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class BlockGrey extends BlockBase {
-    public imgRes: string = "frog_png";
     public readonly type: number = BLOCK_TYPE.GREY;
     constructor(info: BlockInfo) {
         super(info);
     }
 
-    public getImgRes() {
-        return "frog_png";
+    /*
+    * 绘制普通状态
+    **/
+    public drawNormal(): egret.Bitmap {
+        return Util.createBitmapByName("frog_png");
+    }
+
+    /*
+    * 绘制特效
+    **/
+    public drawSpecialEffect(): egret.MovieClip {
+        return Util.createMCByName("mcfrog");
     }
 }
