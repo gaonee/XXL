@@ -74,10 +74,6 @@ class Main extends egret.DisplayObjectContainer {
         upView.height = (height-width)/2;
         this.addChild(upView);
 
-        let mc = Util.createMCByName("mcbear");
-        upView.addChild(mc);
-        mc.gotoAndPlay("lateral", -1);
-
         let mapView = new MapContainer(0, (height-width)/2, width, width);
         this.addChild(mapView);
         new Control(mapView);

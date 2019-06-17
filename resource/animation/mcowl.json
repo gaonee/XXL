@@ -1,0 +1,41 @@
+{"mc":{
+	"bear":{
+		"frameRate":5,
+        "labels":[
+            {"name":"rowline","frame":1,"end":4},
+            {"name":"colline","frame":1,"end":4},
+            {"name":"magicbird","frame":1,"end":4},
+            {"name":"bomb","frame":1,"end":4}
+        ],
+		"events":[
+			
+			],
+		"frames":[
+			
+			{
+			"res":"left",
+			"x":0,
+			"y":0
+			},
+            {
+			"res":"mid",
+			"x":0,
+			"y":0
+			},
+			{
+			"res":"right",
+			"x":0,
+			"y":0
+			},
+            {
+			"res":"mid",
+			"x":0,
+			"y":0
+			}
+			]
+}},
+	"res":{
+		"left":{"x":4,"y":3,"w":70,"h":64},
+		"right":{"x":4,"y":357,"w":75,"h":67},
+        "mid":{"x":84,"y":282,"w":72,"h":67}
+	}}

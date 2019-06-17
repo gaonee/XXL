@@ -1,7 +1,7 @@
 {
 	"groups": [
 		{
-			"keys": "bg_jpg,egret_icon_png,description_json,mcbear_json,mcbear_png",
+			"keys": "bg_jpg,egret_icon_png,description_json,mcbear_json,mcbear_png,mcchick_json,mcchick_png,mcfox_json,mcfox_png,mcfrog_json,mcfrog_png,mcowl_json,mcowl_png",
 			"name": "preload"
 		},
 		{
@@ -56,14 +56,54 @@
 			"name": "owl_png"
 		},
 		{
-			"url": "animation/bear/mcbear.json",
+			"url": "animation/mcbear.json",
 			"type": "json",
 			"name": "mcbear_json"
 		},
 		{
-			"url": "animation/bear/mcbear.png",
+			"url": "animation/mcbear.png",
 			"type": "image",
 			"name": "mcbear_png"
+		},
+		{
+			"url": "animation/mcfox.png",
+			"type": "image",
+			"name": "mcfox_png"
+		},
+		{
+			"url": "animation/mcfrog.png",
+			"type": "image",
+			"name": "mcfrog_png"
+		},
+		{
+			"url": "animation/mcchick.png",
+			"type": "image",
+			"name": "mcchick_png"
+		},
+		{
+			"url": "animation/mcowl.png",
+			"type": "image",
+			"name": "mcowl_png"
+		},
+		{
+			"url": "animation/mcfrog.json",
+			"type": "json",
+			"name": "mcfrog_json"
+		},
+		{
+			"url": "animation/mcowl.json",
+			"type": "json",
+			"name": "mcowl_json"
+		},
+		{
+			"url": "animation/mcfox.json",
+			"type": "json",
+			"name": "mcfox_json"
+		},
+		{
+			"url": "animation/mcchick.json",
+			"type": "json",
+			"name": "mcchick_json"
 		}
 	]
 }
