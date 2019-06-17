@@ -2,8 +2,10 @@
 	"bear":{
 		"frameRate":5,
         "labels":[
-            {"name":"lateral","frame":1,"end":4},
-            {"name":"lengthways","frame":1,"end":4}
+            {"name":"rowline","frame":1,"end":4},
+            {"name":"colline","frame":1,"end":4},
+            {"name":"magicbird","frame":1,"end":4},
+            {"name":"bomb","frame":1,"end":4}
         ],
 		"events":[
 			
