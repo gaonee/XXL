@@ -35,7 +35,7 @@ const enum BLOCK_TYPE {
 }
 
 /*
- * 特效状态:横向特效，纵向特效，爆炸特效，魔力鸟特效
+ * 特效类型:横向特效，纵向特效，爆炸特效，魔力鸟特效
 **/
 const enum EFFECT_TYPE {
     ROW_LINE,
@@ -76,7 +76,7 @@ interface EliminateInfo {
     keyPoint?: Point
 }
 
-enum ELIMINATE_TYPE {
+const enum ELIMINATE_TYPE {
     ROW_LINE_THREE,
     ROW_LINE_FOUR,
     ROW_LINE_FIVE,
@@ -84,4 +84,12 @@ enum ELIMINATE_TYPE {
     COL_LINE_FOUR,
     COL_LINE_FIVE,
     NON_LINE
+}
+
+/*
+ * 交换类型
+**/
+const enum SWAP_TYPE {
+    // 普通格子交换
+    NORMAL,
 }
