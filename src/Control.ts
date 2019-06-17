@@ -20,7 +20,7 @@ class Control {
     private readonly row: number = 9;
     private readonly column: number = 9;
     // 一次touchBegin只能执行一次交换动作，后面的滑动会屏蔽
-    private canExchange: boolean = true;
+    private swapFlag: boolean = true;
 
     constructor(container: egret.DisplayObjectContainer) {
         this.container = container;
@@ -57,7 +57,7 @@ class Control {
             this.touchY = evt.localY;
             this.status = BLOCK_STATUS.CHECKED;
             // 此处设置为true，防止出现onTouchEnd事件异常的情况，保证每次拖动正常执行。
-            this.canExchange = true;
+            this.swapFlag = true;
         }
     }
 
@@ -67,11 +67,11 @@ class Control {
             this.status == BLOCK_STATUS.CHECKED) {
             this.status = BLOCK_STATUS.READY;
         }
-        this.canExchange = true;
+        this.swapFlag = true;
     }
 
     private onTouchMove(evt: egret.TouchEvent) {
-        if (!this.canExchange) {
+        if (!this.swapFlag) {
             return;
         }
 
@@ -90,72 +90,72 @@ class Control {
         let touchCol = Math.floor(this.touchX / this.size);
         let touchRow = Math.floor(this.touchY / this.size);
         let dir: number = null;
-        let changeRow = touchRow;
-        let changeCol = touchCol;
+        let swapRow = touchRow;
+        let swapCol = touchCol;
 
         if (Math.abs(moveX) >= this.size / 3) {
             if (moveX > 0) {
-                changeCol = touchCol + 1;
+                swapCol = touchCol + 1;
                 dir = MOVE_DIRECTION.RIGHT;
             } else {
-                changeCol = touchCol - 1;
+                swapCol = touchCol - 1;
                 dir = MOVE_DIRECTION.LEFT;
             }
         } else if (Math.abs(moveY) >= this.size / 3) {
             if (moveY > 0) {
-                changeRow = touchRow + 1;
+                swapRow = touchRow + 1;
                 dir = MOVE_DIRECTION.BOTTOM;
             } else {
-                changeRow = touchRow - 1;
+                swapRow = touchRow - 1;
                 dir = MOVE_DIRECTION.TOP;
             }
         }
 
         if (dir != null) {
-            if (this.map.get(changeRow, changeCol) == null ||
+            if (this.map.get(swapRow, swapCol) == null ||
                 this.map.get(touchRow, touchCol) == null) {
                 this.status = BLOCK_STATUS.READY;
             } else {
-                this.canExchange = false;
-                this.change(touchRow, touchCol, changeRow, changeCol, dir);
+                this.swapFlag = false;
+                this.swapRequest(touchRow, touchCol, swapRow, swapCol, dir);
             }
         }
     }
 
     /*
-     * change position
+     * Request to swap
     **/
-    private change(touchRow, touchCol, distRow: number, distCol: number, dir) {
-        Log.debug("Exchange block: row: " + (touchRow+1) + ", col: " + (touchCol+1) + ", dir: " + dir);
+    private swapRequest(touchRow, touchCol, distRow: number, distCol: number, dir) {
+        Log.debug("Swap block: row: " + (touchRow+1) + ", col: " + (touchCol+1) + ", dir: " + dir);
 
         let touchBlock = this.map.get(touchRow, touchCol);
         let dist = this.map.get(distRow, distCol);
 
         this.status = BLOCK_STATUS.MOVING;
-        touchBlock.change(dir, () => {
+        touchBlock.move(dir, () => {
             let ret: EliminateInfo[] = this.eliminateCheck.touchCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
             if (ret.length > 0) {
                 Log.debug("Start eliminate.");
                 this.status = BLOCK_STATUS.ELIMINATION;
-                this.map.exchange(touchRow, touchCol, distRow, distCol);
-                this.map.effectsEliminate(ret, () => {
+                this.map.swap(touchRow, touchCol, distRow, distCol);
+                this.map.eliminate(ret, () => {
                     this.whoolyEliminate();
                 });
             } else {
                 // move back
-                touchBlock.change(-dir, () => {
+                touchBlock.move(-dir, () => {
                     this.status = BLOCK_STATUS.READY;
                 }, 100);
-                dist.change(dir, () => {}, 100);
+                dist.move(dir, () => {}, 100);
             }
         });
-        dist.change(-dir);
+        dist.move(-dir);
     }
 
     private whoolyEliminate() {
         let ret: EliminateInfo[] = this.eliminateCheck.whollyCheck(this.map);
         if (ret.length > 0) {
-            this.map.effectsEliminate(ret, () => {
+            this.map.eliminate(ret, () => {
                 this.whoolyEliminate();
             });
         } else {
