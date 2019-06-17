@@ -9,13 +9,22 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class BlockGreen extends BlockBase {
-    public imgRes: string = "fox_png";
     public readonly type: number = BLOCK_TYPE.GREEN;
     constructor(info: BlockInfo) {
         super(info);
     }
 
-    public getImgRes() {
-        return "fox_png";
+    /*
+    * 绘制普通状态
+    **/
+    public drawNormal(): egret.Bitmap {
+        return Util.createBitmapByName("fox_png");
+    }
+
+    /*
+    * 绘制特效
+    **/
+    public drawSpecialEffect(): egret.MovieClip {
+        return Util.createMCByName("mcfox");
     }
 }
