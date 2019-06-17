@@ -9,13 +9,22 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class BlockRed extends BlockBase {
-    public imgRes: string = "owl_png";
     public readonly type: number = BLOCK_TYPE.RED;
     constructor(info: BlockInfo) {
         super(info);
     }
 
-    public getImgRes() {
-        return "owl_png";
+    /*
+    * 绘制普通状态
+    **/
+    public drawNormal(): egret.Bitmap {
+        return Util.createBitmapByName("owl_png");
+    }
+
+    /*
+    * 绘制特效
+    **/
+    public drawSpecialEffect(): egret.MovieClip {
+        return Util.createMCByName("mcowl");
     }
 }
