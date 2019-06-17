@@ -14,7 +14,17 @@ class BlockBlack extends BlockBase {
         super(info);
     }
 
-    public getImgRes() {
-        return "bear_png";
+    /*
+    * 绘制普通状态
+    **/
+    public drawNormal(): egret.Bitmap {
+        return Util.createBitmapByName("bear_png");
+    }
+
+    /*
+    * 绘制特效
+    **/
+    public drawSpecialEffect(): egret.MovieClip {
+        return Util.createMCByName("mcbear");
     }
 }
