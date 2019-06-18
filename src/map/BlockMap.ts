@@ -16,6 +16,7 @@ class BlockMap {
     private size: number = 0;
     // 标识哪一列有格子消除，并记录每列最下方的消除位置
     private eliminateMemo: number[] = null;
+    private effectsProcess: EffectsProcess = null;
 
     constructor(container: egret.DisplayObjectContainer, row: number, col: number, size: number) {
         if (container == null) return;
@@ -24,6 +25,7 @@ class BlockMap {
         this.row = row;
         this.column = col;
         this.size = size;
+        this.effectsProcess = new EffectsProcess();
 
         for (let row = 0; row < this.row; row++) {
             this.map[row] = new Array();
@@ -169,7 +171,7 @@ class BlockMap {
             // 是否是特效
             let effect: EFFECT_TYPE = block.getSpecialEffect();
             if (effect != null) {
-                this.effectEliminate(block, p);
+                this.effectEliminate(block);
             }
 
             this.setEliminateMemo(p.row, p.col);
@@ -181,18 +183,18 @@ class BlockMap {
      * @param block 需要消除的特效格子
      * @param point 格子位置
     **/
-    private effectEliminate(block: BlockBase, point: Point) {
+    private effectEliminate(block: BlockBase) {
         switch (block.getSpecialEffect()) {
             case EFFECT_TYPE.ROW_LINE: {
-                this.eliminateRow(point.row);
+                this.effectsProcess.eliminateRow(this, block.getRow());
                 break;
             }
             case EFFECT_TYPE.COL_LINE: {
-                this.eliminateCol(point.col);
+                this.effectsProcess.eliminateCol(this, block.getCol());
                 break;
             }
             case EFFECT_TYPE.BOMB: {
-                this.eliminateBomb(point);
+                this.effectsProcess.eliminateBomb(this, block.getPoint());
                 break;
             }
             case EFFECT_TYPE.MAGIC_BIRD: {}
@@ -203,114 +205,10 @@ class BlockMap {
     }
 
     /*
-     * 整行消除。
-     * @param row 需要消除的行
-    **/
-    private eliminateRow(row: number) {
-        for (let col = 0; col < this.row; col++) {
-            this.remove(row, col);
-            this.setEliminateMemo(row, col);
-        }
-    }
-
-    /*
-     * 整列消除。
-     * @param col 需要消除的列
-    **/
-    private eliminateCol(col: number) {
-        for (let row = 0; row < this.row; row++) {
-            this.remove(row, col);
-            this.setEliminateMemo(row, col);
-        }
-    }
-
-    /*
-     * 爆炸消除。消除上下左右个两个；左上，右上，左下，右下各一个
-     * @param point 爆炸点
-    **/
-    private eliminateBomb(point: Point) {
-        this.remove(point.row-1, point.col);
-        this.remove(point.row-2, point.col);
-        this.remove(point.row+1, point.col);
-        this.remove(point.row+2, point.col);
-
-        this.remove(point.row, point.col-1);
-        this.remove(point.row, point.col-2);
-        this.remove(point.row, point.col+1);
-        this.remove(point.row, point.col+2);
-
-        this.remove(point.row-1, point.col-1);
-        this.remove(point.row-1, point.col+1);
-        this.remove(point.row+1, point.col-1);
-        this.remove(point.row+1, point.col+1);
-
-        this.setEliminateMemo(point.row, point.col-2);
-        this.setEliminateMemo(point.row+1, point.col-1);
-        this.setEliminateMemo(point.row+2, point.col);
-        this.setEliminateMemo(point.row+1, point.col+1);
-        this.setEliminateMemo(point.row, point.col+2);
-    }
-
-    /*
-     * 魔力鸟消除。
-     * @param type 需要消除的类型
-    **/
-    private eliminateMagicBird(type: BLOCK_TYPE) {
-        for (let row = 0; row < this.row; row++)  {
-            for (let col = 0; col < this.column; col++) {
-                let block = this.get(row, col);
-                if (block != null && block.getType() == type) {
-                    this.remove(row, col, block);
-                    this.setEliminateMemo(row, col);
-                }
-            }
-        }
-    }
-
-    /*
-     * 双横向。
-    **/
-    /*
-     * 双纵向。
-    **/
-    /*
-     * 横向+纵向。
-    **/
-
-    /*
-     * 横向+爆炸。
-     * @param type 需要消除的类型
-    **/
-    private eliminateRowBomb() {}
-
-    /*
-     * 纵向+爆炸。
-     * @param type 需要消除的类型
-    **/
-    private eliminateColBomb() {}
-
-    /*
-     * 双爆。
-    **/
-
-    /*
-     * 魔力鸟+爆炸。
-    **/
-    /*
-     * 魔力鸟+横向。
-    **/
-    /*
-     * 魔力鸟+纵向。
-    **/
-    /*
-     * 魔力鸟+魔力鸟。
-    **/
-
-    /*
      * 记录每列最下方消除位置，从而得知哪些格子产生了移动，
      * 进而，得到触发特效形成的keyPoint
     **/
-    private setEliminateMemo(row: number, col: number) {
+    public setEliminateMemo(row: number, col: number) {
         this.eliminateMemo[col] = this.eliminateMemo[col] == undefined ? row : Math.max(row, this.eliminateMemo[col]);
     }
 
@@ -342,7 +240,7 @@ class BlockMap {
     }
 
     /*
-     * 特效消除
+     * 根据指定点进行消除
      * @param eliminateList EliminateInfo组成的数组
     **/
     public eliminate(eliminateList: EliminateInfo[], callback: Function) {
@@ -362,16 +260,6 @@ class BlockMap {
         this.dropDown(() => {
             setTimeout(callback, 50);
         });
-    }
-
-    /*
-     * 交换相邻位置格子
-    **/
-    public swap(distRow: number, distCol: number, resRow: number, resCol: number): void {
-        let temp = this.map[distRow][distCol];
-
-        this.map[distRow][distCol] = this.map[resRow][resCol];
-        this.map[resRow][resCol] = temp;
     }
 
     /*
@@ -465,5 +353,27 @@ class BlockMap {
             this.container.removeChild(block.getObject());
             block.show(this.container);
         }
+    }
+
+    /*
+     * 交换相邻位置格子
+    **/
+    public swap(distRow: number, distCol: number, resRow: number, resCol: number): void {
+        let temp = this.map[distRow][distCol];
+
+        this.map[distRow][distCol] = this.map[resRow][resCol];
+        this.map[resRow][resCol] = temp;
+    }
+
+    public swapNeighbors(res: BlockBase, dist: BlockBase, dir: number, callback ?: Function, waitTime ?: number) {
+        let count = 0;
+        let process = () => {
+            count ++;
+            if (count == 2 && callback) {
+                callback();
+            }
+        }
+        res.move(dir, process, waitTime);
+        dist.move(-dir, process, waitTime);
     }
 }
