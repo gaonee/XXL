@@ -87,6 +87,13 @@ class BlockBase {
         return this.info.col;
     }
 
+    public getPoint(): Point {
+        return {
+            row: this.getRow(),
+            col: this.getCol()
+        }
+    }
+
     public getSpecialEffect() {
         return this.info.effectType != undefined ? this.info.effectType : null;
     }
