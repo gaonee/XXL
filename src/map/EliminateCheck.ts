@@ -11,6 +11,17 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 class EliminateCheck {
+    private eliminateList: EliminateInfo[] = null;
+    /*
+     * 二次消除特效点列表
+     * 二次消除表示被直线特效或者魔力鸟消除的点，这些点在当次消除中不会立即消除；
+     * 当该次消除结束后，继续触发该点特效，用以表现消除的层次。
+    **/
+    private effectList: BlockInfo[] = null;
+
+    public getResult(): EliminateInfo[] {
+        return this.eliminateList;
+    }
     /*
      * 计算本次交换是否会达到消除条件，用于滑动后的首次消除。
      * @param map BlockMap
@@ -20,7 +31,7 @@ class EliminateCheck {
      * @param distCol 目标格子所在列
      * @param dir 手指滑动方向
     **/
-    public touchCheck(map: BlockMap, touchRow: number, touchCol: number, distRow: number, distCol: number, dir: number): EliminateInfo[] {
+    public swapCheck(map: BlockMap, touchRow: number, touchCol: number, distRow: number, distCol: number, dir: number): EliminateInfo[] {
         let eliminateList: EliminateInfo[] = new Array();
         let touchRet: EliminateInfo = this.singleScan(map, distRow, distCol, map.get(touchRow, touchCol), dir);
         let distRet: EliminateInfo = this.singleScan(map, touchRow, touchCol, map.get(distRow, distCol), -dir);
