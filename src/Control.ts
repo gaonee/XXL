@@ -125,32 +125,57 @@ class Control {
     /*
      * Request to swap
     **/
-    private swapRequest(touchRow, touchCol, distRow: number, distCol: number, dir) {
+    private swapRequest(touchRow: number, touchCol: number, distRow: number, distCol: number, dir: MOVE_DIRECTION) {
         Log.debug("Swap block: row: " + (touchRow+1) + ", col: " + (touchCol+1) + ", dir: " + dir);
 
         let touchBlock = this.map.get(touchRow, touchCol);
-        let dist = this.map.get(distRow, distCol);
+        let distBlock = this.map.get(distRow, distCol);
 
         this.status = BLOCK_STATUS.MOVING;
-        touchBlock.move(dir, () => {
-            let ret: EliminateInfo[] = this.eliminateCheck.touchCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
-            if (ret.length > 0) {
-                Log.debug("Start eliminate.");
-                this.status = BLOCK_STATUS.ELIMINATION;
-                this.map.swap(touchRow, touchCol, distRow, distCol);
-                this.map.eliminate(ret, () => {
-                    this.whoolyEliminate();
-                });
+        this.map.swapNeighbors(touchBlock, distBlock, dir, () => {
+            let touchEffect = touchBlock.getSpecialEffect();
+            let distEffect = distBlock.getSpecialEffect();
+
+            if (touchEffect != null && distEffect != null) {
+                this.specialEffectSwap();
             } else {
-                // move back
-                touchBlock.move(-dir, () => {
-                    this.status = BLOCK_STATUS.READY;
-                }, 100);
-                dist.move(dir, () => {}, 100);
+                if (touchEffect == EFFECT_TYPE.MAGIC_BIRD && distEffect == EFFECT_TYPE.MAGIC_BIRD) {
+                    this.singleMagicBirdSwap();
+                } else {
+                    if (!this.simpleSwap(touchRow, touchCol, distRow, distCol, dir)) {
+                        // move back
+                        this.map.swapNeighbors(touchBlock, distBlock, -dir, () => {
+                            this.status = BLOCK_STATUS.READY;
+                        }, 100);
+                    }
+                }
             }
         });
-        dist.move(-dir);
     }
+
+    /*
+     * 简单交换
+    **/
+    private simpleSwap(touchRow: number, touchCol: number, distRow: number, distCol: number, dir: number): boolean {
+        let ret: EliminateInfo[] = this.eliminateCheck.swapCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
+        if (ret.length > 0) {
+            this.map.swap(touchRow, touchCol, distRow, distCol);
+            this.map.eliminate(ret, () => {
+                this.whoolyEliminate();
+            });
+        }
+        return ret.length > 0;
+    }
+
+    /*
+     * 单魔力鸟交换
+    **/
+    public singleMagicBirdSwap() {}
+
+    /*
+     * 双特效交换
+    **/
+    public specialEffectSwap() {}
 
     private whoolyEliminate() {
         let ret: EliminateInfo[] = this.eliminateCheck.whollyCheck(this.map);
