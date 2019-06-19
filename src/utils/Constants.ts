@@ -61,7 +61,7 @@ interface BlockInfo {
 }
 
 /*
- * 消除信息，用来确定消除方式
+ * 消除信息，用来确定消除方式（不包含特效消除）
  * type     消除类型，包括三消、四消、五消、T型、L型等
  * points   消除的点的位置构成的数组
  * keyPoint 关键点，该位置用于确定特效生成的位置，有以下几种情况：
@@ -73,7 +73,7 @@ interface BlockInfo {
 interface EliminateInfo {
     type: ELIMINATE_TYPE;
     points: Point[];
-    keyPoint?: Point
+    keyPoint?: Point;
 }
 
 const enum ELIMINATE_TYPE {
