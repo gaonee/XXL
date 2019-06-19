@@ -49,6 +49,42 @@ class Util {
         return mc;
     }
 
+    /**
+     * Get special effect type by eliminate type.
+     * @param type eliminate type
+     * @return special effect type: EFFECT_TYPE
+     */
+    public static getEffectType(type: ELIMINATE_TYPE): EFFECT_TYPE {
+        let effectType: EFFECT_TYPE = null;
+
+        switch (type) {
+            case ELIMINATE_TYPE.ROW_LINE_FOUR: {
+                effectType = EFFECT_TYPE.COL_LINE;
+                break;
+            }
+            case ELIMINATE_TYPE.COL_LINE_FOUR: {
+                effectType = EFFECT_TYPE.ROW_LINE;
+                break;
+            }
+            case ELIMINATE_TYPE.ROW_LINE_FIVE: 
+            case ELIMINATE_TYPE.COL_LINE_FIVE: {
+                effectType = EFFECT_TYPE.MAGIC_BIRD;
+                break;
+            }
+            case ELIMINATE_TYPE.NON_LINE: {
+                effectType = EFFECT_TYPE.BOMB;
+                break;
+            }
+            case ELIMINATE_TYPE.COL_LINE_THREE:
+            case ELIMINATE_TYPE.ROW_LINE_THREE:
+            default: {
+                break;
+            }
+        }
+
+        return effectType;
+    }
+
     public static generateBlockInfo(row: number, col: number, size: number): BlockInfo {
         return {
             row: row,
