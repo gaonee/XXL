@@ -32,6 +32,40 @@ class Control {
         this.initMap();
     }
 
+    private checkMap() {
+        for (let row = 0; row < this.row; row++) {
+            for (let col = 0; col < this.column; col++) {
+                let block = this.map.get(row, col);
+                if (block == null) continue;
+                if (row != block.getRow() ||
+                    col != block.getCol()) {
+                    Log.warn("rol or column not match: row: " + row + ", col: " + col);
+                }
+            }
+        }
+    }
+
+    private initMap() {
+        for (let i = 0; i < this.row; i++) {
+            for (let j = 0; j < this.column; j++) {
+                let info: BlockInfo = Util.generateBlockInfo(i, j, this.size);
+                // 出现连续三个相同的情况，则生成一个跟上方和左侧都不一样的块
+                if (this.map.isLine(i, j, info)) {
+                    info.type = this.map.getDifferentType(i, j);
+                }
+                this.map.add(i, j, Util.createBlock(info))
+            }
+        }
+        if (this.deadMapCheck.check(this.map)) {
+            Log.debug("DEAD MAP! so that we will create the map again.");
+            this.initMap();
+        } else {
+            this.map.render();
+            this.bindEvent();
+            this.checkMap()
+        }
+    }
+
     // event process
     private bindEvent() {
         this.container.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouchBegin, this);
@@ -125,11 +159,11 @@ class Control {
     /*
      * Request to swap
     **/
-    private swapRequest(touchRow: number, touchCol: number, distRow: number, distCol: number, dir: MOVE_DIRECTION) {
+    private swapRequest(touchRow: number, touchCol: number, swapRow: number, swapCol: number, dir: MOVE_DIRECTION) {
         Log.debug("Swap block: row: " + (touchRow+1) + ", col: " + (touchCol+1) + ", dir: " + dir);
 
         let touchBlock = this.map.get(touchRow, touchCol);
-        let distBlock = this.map.get(distRow, distCol);
+        let distBlock = this.map.get(swapRow, swapCol);
 
         this.status = BLOCK_STATUS.MOVING;
         this.map.swapNeighbors(touchBlock, distBlock, dir, () => {
@@ -137,17 +171,12 @@ class Control {
             let distEffect = distBlock.getSpecialEffect();
 
             if (touchEffect != null && distEffect != null) {
-                this.specialEffectSwap();
+                this.specialEffectSwap(touchRow, touchCol, swapRow, swapCol);
             } else {
-                if (touchEffect == EFFECT_TYPE.MAGIC_BIRD && distEffect == EFFECT_TYPE.MAGIC_BIRD) {
+                if (touchEffect == EFFECT_TYPE.MAGIC_BIRD || distEffect == EFFECT_TYPE.MAGIC_BIRD) {
                     this.singleMagicBirdSwap();
                 } else {
-                    if (!this.simpleSwap(touchRow, touchCol, distRow, distCol, dir)) {
-                        // move back
-                        this.map.swapNeighbors(touchBlock, distBlock, -dir, () => {
-                            this.status = BLOCK_STATUS.READY;
-                        }, 100);
-                    }
+                    this.simpleSwap(touchRow, touchCol, swapRow, swapCol, dir);
                 }
             }
         });
@@ -155,72 +184,54 @@ class Control {
 
     /*
      * 简单交换
+     * 即交换时需要判断连续三个或三个以上相同格子的情况。
+     * 注意：简单交换可能存在特效，但不能是魔力鸟这种可任意交换的类型。
     **/
-    private simpleSwap(touchRow: number, touchCol: number, distRow: number, distCol: number, dir: number): boolean {
-        let ret: EliminateInfo[] = this.eliminateCheck.swapCheck(this.map, touchRow, touchCol, distRow, distCol, dir);
+    private simpleSwap(touchRow: number, touchCol: number, swapRow: number, swapCol: number, dir: number) {
+        let ret: EliminateInfo[] = this.eliminateCheck.swapCheck(this.map, touchRow, touchCol, swapRow, swapCol, dir);
         if (ret.length > 0) {
-            this.map.swap(touchRow, touchCol, distRow, distCol);
-            this.map.eliminate(ret, () => {
+            this.map.swap(touchRow, touchCol, swapRow, swapCol);
+            this.map.simpleEliminateProcess(ret, () => {
                 this.whoolyEliminate();
             });
+        } else {
+            // move back
+            this.map.swapNeighbors(this.map.get(touchRow, touchCol), this.map.get(swapRow, swapCol), -dir, () => {
+                this.status = BLOCK_STATUS.READY;
+            }, 100);
         }
-        return ret.length > 0;
     }
 
     /*
      * 单魔力鸟交换
+     * 当交换双方只有一个特效，且为魔力鸟时，可以直接进行交换。
     **/
-    public singleMagicBirdSwap() {}
+    private singleMagicBirdSwap() {}
 
     /*
      * 双特效交换
+     * 交换双方均为特效，可以直接进行交换。
     **/
-    public specialEffectSwap() {}
+    private specialEffectSwap(touchRow: number, touchCol: number, swapRow: number, swapCol: number) {
+        this.map.swap(touchRow, touchCol, swapRow, swapCol);
+        this.map.effectSwapEliminateProcess(this.map.get(touchRow, touchCol), this.map.get(swapRow, swapCol), () => {
+            this.whoolyEliminate();
+        });
+    }
 
+    /*
+     * 全局扫描循环消除，直到出现不能消除的情况为止。
+    **/
     private whoolyEliminate() {
         let ret: EliminateInfo[] = this.eliminateCheck.whollyCheck(this.map);
         if (ret.length > 0) {
-            this.map.eliminate(ret, () => {
+            this.map.simpleEliminateProcess(ret, () => {
                 this.whoolyEliminate();
             });
         } else {
             Log.debug("Finish eliminate.");
             this.status = BLOCK_STATUS.READY;
             this.checkMap();
-        }
-    }
-
-    private initMap() {
-        for (let i = 0; i < this.row; i++) {
-            for (let j = 0; j < this.column; j++) {
-                let info: BlockInfo = Util.generateBlockInfo(i, j, this.size);
-                // 出现连续三个相同的情况，则生成一个跟上方和左侧都不一样的块
-                if (this.map.isLine(i, j, info)) {
-                    info.type = this.map.getDifferentType(i, j);
-                }
-                this.map.add(i, j, Util.createBlock(info))
-            }
-        }
-        if (this.deadMapCheck.check(this.map)) {
-            Log.debug("DEAD MAP! so that we will create the map again.");
-            this.initMap();
-        } else {
-            this.map.render();
-            this.bindEvent();
-            this.checkMap()
-        }
-    }
-
-    public checkMap() {
-        for (let row = 0; row < this.row; row++) {
-            for (let col = 0; col < this.column; col++) {
-                let block = this.map.get(row, col);
-                if (block == null) continue;
-                if (row != block.getRow() ||
-                    col != block.getCol()) {
-                    Log.warn("rol or column not match: row: " + row + ", col: " + col);
-                }
-            }
         }
     }
 }
