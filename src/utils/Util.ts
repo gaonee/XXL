@@ -91,8 +91,15 @@ class Util {
             col: col,
             width: size,
             height: size,
-            type: this.random(1, BLOCK_NUM)
+            type: this.generateBlockType()
         };
+    }
+
+    /**
+     * Generate random block type.
+     */
+    public static generateBlockType(): number {
+        return this.random(1, BLOCK_NUM);
     }
 
     public static random(min: number, max: number): number {
