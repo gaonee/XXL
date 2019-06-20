@@ -66,8 +66,10 @@ class EliminateCheck {
                     for (let j = 0; j < colPoints.length; j++) {
                         let keyPoint = this.isCross(rowPoints[i], colPoints[j]);
                         if (keyPoint != null) {
+                            let block = map.get(keyPoint.row, keyPoint.col);
                             eliminateList.push({
                                 type: ELIMINATE_TYPE.NON_LINE,
+                                blockType: block.getType(),
                                 points: rowPoints[i].concat(colPoints[j]),
                                 keyPoint: keyPoint
                             });
@@ -76,11 +78,14 @@ class EliminateCheck {
                             break;
                         } else {
                             if (j == colPoints.length-1) {
+                                let keyPoint = this.getKeyPoint(map, "row", rowPoints[i]);
+                                let block = map.get(keyPoint.row, keyPoint.col);
                                 // 没有交叉，直接返回
                                 eliminateList.push({
                                     type: this.getEliminateType("row", rowPoints[i].length),
+                                    blockType: block.getType(),
                                     points: rowPoints[i],
-                                    keyPoint: this.getKeyPoint(map, "row", rowPoints[i])
+                                    keyPoint: keyPoint
                                 });
                             }
                         }
@@ -104,10 +109,14 @@ class EliminateCheck {
 
     private addLineEliminatePoints(map: BlockMap, axis: string, points: Point[][], eliminateList: EliminateInfo[]) {
         for (let i = 0; i < points.length; i++) {
+            let keyPoint = this.getKeyPoint(map, axis, points[i]);
+            let block = map.get(keyPoint.row, keyPoint.col);
+
             eliminateList.push({
                 type: this.getEliminateType(axis, points[i].length),
+                blockType: block.getType(),
                 points: points[i],
-                keyPoint: this.getKeyPoint(map, axis, points[i])
+                keyPoint: keyPoint
             });
         }
     }
@@ -119,7 +128,7 @@ class EliminateCheck {
      * @param keyPoint 关键点，参考 EliminateInfo 中的说明。
      * @return EliminateInfo
     **/
-    private getEliminateInfo(rowArr: Point[], colArr: Point[], keyPoint: Point): EliminateInfo {
+    private getEliminateInfo(rowArr: Point[], colArr: Point[], keyPoint: Point, blockType: BLOCK_TYPE): EliminateInfo {
         let eliminateType: ELIMINATE_TYPE = null;
         let eliminatePoints: Point[] = null;
 
@@ -142,6 +151,7 @@ class EliminateCheck {
         Log.debug("eliminateType: " + eliminateType);
         return eliminateType == null ? null : {
             type: eliminateType,
+            blockType: blockType,
             points: eliminatePoints,
             keyPoint: keyPoint
         };
@@ -277,7 +287,7 @@ class EliminateCheck {
                 }
             }
         }
-        return this.getEliminateInfo(rowArr, colArr, {row: row, col: col});
+        return this.getEliminateInfo(rowArr, colArr, {row: row, col: col}, type);
     }
 
     /*
