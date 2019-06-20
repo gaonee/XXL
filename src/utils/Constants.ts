@@ -44,7 +44,7 @@ const enum EFFECT_TYPE {
     MAGIC_BIRD
 }
 
-const BLOCK_NUM = 5;
+const BLOCK_NUM = 4;
 
 interface Point {
     row: number;
@@ -72,6 +72,7 @@ interface BlockInfo {
 **/
 interface EliminateInfo {
     type: ELIMINATE_TYPE;
+    blockType: BLOCK_TYPE;
     points: Point[];
     keyPoint?: Point;
 }
@@ -84,12 +85,4 @@ const enum ELIMINATE_TYPE {
     COL_LINE_FOUR,
     COL_LINE_FIVE,
     NON_LINE
-}
-
-/*
- * 交换类型
-**/
-const enum SWAP_TYPE {
-    // 普通格子交换
-    NORMAL,
 }
