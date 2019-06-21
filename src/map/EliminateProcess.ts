@@ -231,7 +231,7 @@ class EliminateProcess {
                 col: keyPoint.col,
                 width: map.getSize(),
                 height: map.getSize(),
-                type: eliminateInfo.blockType,
+                type: effectType == EFFECT_TYPE.MAGIC_BIRD ? BLOCK_TYPE.MAGIC_BIRD : eliminateInfo.blockType,
                 effectType: effectType
             }
             effectBlock = Util.createBlock(blockInfo);
@@ -284,13 +284,13 @@ class EliminateProcess {
     }
 
 
-    /************************************************* 特效实现 **************************************************/
+    /************************************************* 独立特效实现 **************************************************/
 
     /**
      * 爆炸消除。消除上下左右个两个；左上，右上，左下，右下各一个
      * @param point 爆炸点
     **/
-    public bomb(map: BlockMap, point: Point, callback: Function) {
+    private bomb(map: BlockMap, point: Point, callback: Function) {
         let effectList = new Array();
         this.removeAndCollectEffectBlock(map, point.row-1, point.col, effectList);
         this.removeAndCollectEffectBlock(map, point.row-2, point.col, effectList);
@@ -317,7 +317,7 @@ class EliminateProcess {
      * 整列消除。
      * @param col 需要消除的列
     **/
-    public lineCol(map: BlockMap, col: number, callback: Function) {
+    private lineCol(map: BlockMap, col: number, callback: Function) {
         let effectList = new Array();
         for (let row = 0; row < map.getRowAmount(); row++) {
             this.removeAndCollectEffectBlock(map, row, col, effectList);
@@ -332,7 +332,7 @@ class EliminateProcess {
      * 整行消除。
      * @param row 需要消除的行
     **/
-    public lineRow(map: BlockMap, row: number, callback: Function) {
+    private lineRow(map: BlockMap, row: number, callback: Function) {
         let effectList = new Array();
         for (let col = 0; col < map.getColAmount(); col++) {
             this.removeAndCollectEffectBlock(map, row, col, effectList);
@@ -347,7 +347,7 @@ class EliminateProcess {
      * 单个魔力鸟消除。
      * @param type 需要消除的类型
     **/
-    public magicBird(map: BlockMap, type: BLOCK_TYPE, callback: Function) {
+    private magicBird(map: BlockMap, type: BLOCK_TYPE, callback: Function) {
         let effectList = new Array();
         for (let row = 0; row < map.getRowAmount(); row++)  {
             for (let col = 0; col < map.getColAmount(); col++) {
@@ -363,12 +363,16 @@ class EliminateProcess {
         }, 100);
     }
 
+    /************************************************* 消除调用场景 **************************************************/
+
     /**
-     * 简单消除，只根据指定点进行消除。
-     * 若点所在的格子存在特效，则进入相应的特效处理模块
+     * 简单交换消除，只根据指定点进行消除。
+     * 调用场景：1.简单交换三消；2.格子补全、下落消除。
+     * @param map 消除发生的BlockMap
      * @param eliminateList EliminateInfo组成的数组
+     * @param callback 所有消除完成，且格子补全、下落后执行回调
     **/
-    public simple(map: BlockMap, eliminateList: EliminateInfo[], callback: Function) {
+    public simple(map: BlockMap, eliminateList: EliminateInfo[], callback: Function): void {
         let eliminateCount = 0;
         let process = () => {
             eliminateCount ++;
@@ -387,43 +391,44 @@ class EliminateProcess {
     }
 
     /**
-     * 双横向。
+     * 单魔力鸟交换消除。
+     * 调用场景：单个魔力鸟与普通格子的交换。
+     * @param map 消除发生的BlockMap
+     * @param type 魔力鸟要消除的类型
+     * @param callback 所有消除完成，且格子补全、下落后执行回调
     **/
-    public doubleLineRow() {}
-    /**
-     * 双纵向。
-    **/
-    public doubleLineCol() {}
-    /**
-     * 横向+纵向。
-    **/
+    public singleMagicBird(map: BlockMap, type: BLOCK_TYPE, callback: Function) {
+        this.magicBird(map, type, () => {
+            this.dropDown(map, () => {
+                setTimeout(callback, 50);
+            });
+        });
+    }
 
     /**
      * 横向+爆炸。
      * @param type 需要消除的类型
     **/
-    public bombRow() {}
+    public bombAndRowLine() {}
 
     /**
      * 纵向+爆炸。
      * @param type 需要消除的类型
     **/
-    public bombCol() {}
+    public bombAndColLine() {}
 
     /**
      * 双爆。
     **/
+    public doubleBomb() {}
 
     /**
-     * 魔力鸟+爆炸。
+     * 魔力鸟+其它非魔力鸟的特效。
     **/
-    /**
-     * 魔力鸟+横向。
-    **/
-    /**
-     * 魔力鸟+纵向。
-    **/
+    public magicBirdAndOther() {}
+
     /**
      * 魔力鸟+魔力鸟。
     **/
+    public doubleMagicBird() {}
 }
