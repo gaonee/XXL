@@ -5,7 +5,7 @@
 			"name": "preload"
 		},
 		{
-			"keys": "fox_png,bear_png,chick_png,frog_png,hippopotamus_png,owl_png",
+			"keys": "fox_png,bear_png,chick_png,frog_png,hippopotamus_png,owl_png,magicbird_png",
 			"name": "animals"
 		}
 	],
@@ -104,6 +104,11 @@
 			"url": "animation/mcchick.json",
 			"type": "json",
 			"name": "mcchick_json"
+		},
+		{
+			"url": "assets/animals/magicbird.png",
+			"type": "image",
+			"name": "magicbird_png"
 		}
 	]
 }
