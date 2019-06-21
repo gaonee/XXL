@@ -25,13 +25,16 @@ const enum BLOCK_STATUS {
 
 /*
  * 格子类型，根据此类型绘制
+ * 魔力鸟虽然是特效，但类型已然改变，不能再参与三消，故单独类型。
+ * 其余特效类型不变，通过在BlockInfo中增加特效属性标识。
 **/
 const enum BLOCK_TYPE {
     RED = 1,
     GREY,
     GREEN,
     BLUE,
-    BLACK
+    BLACK,
+    MAGIC_BIRD
 }
 
 /*
