@@ -171,6 +171,11 @@ class BlockMap {
         this.effectsProcess.simple(this, eliminateList, callback);
     }
 
+    public magicBirdEliminateProcess(magicBirdPoint: Point, type: BLOCK_TYPE, callback: Function) {
+        this.remove(magicBirdPoint.row, magicBirdPoint.col);
+        this.effectsProcess.singleMagicBird(this, type, callback);
+    }
+
     /**
      * 双特效交换消除
      * @param touchBlock 手指触摸的格子
@@ -178,22 +183,8 @@ class BlockMap {
      * @param callback 消除并补全、下落完成后调用
     **/
     public effectSwapEliminateProcess(touchBlock: BlockBase, swapBlock: BlockBase, callback: Function) {
-        let touchBlockEffect = touchBlock.getSpecialEffect();
-        let swapBlockEffect = swapBlock.getSpecialEffect();
-
-        switch (touchBlockEffect) {
-            case EFFECT_TYPE.ROW_LINE: {
-                switch (swapBlockEffect) {
-                    case EFFECT_TYPE.ROW_LINE: {}
-                    case EFFECT_TYPE.COL_LINE: {}
-                    case EFFECT_TYPE.BOMB: {}
-                    case EFFECT_TYPE.MAGIC_BIRD: {}
-                }
-            }
-            case EFFECT_TYPE.COL_LINE: {}
-            case EFFECT_TYPE.BOMB: {}
-            case EFFECT_TYPE.MAGIC_BIRD: {}
-        }
+        let touchEffect = touchBlock.getSpecialEffect();
+        let swapEffect = swapBlock.getSpecialEffect();
     }
 
     /**
