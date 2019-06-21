@@ -25,7 +25,7 @@ class BlockBase {
             case EFFECT_TYPE.ROW_LINE:
             case EFFECT_TYPE.COL_LINE:
             case EFFECT_TYPE.BOMB:
-            case EFFECT_TYPE.MAGIC_BIRD: {
+            /*case EFFECT_TYPE.MAGIC_BIRD:*/ {
                 this.block = this.drawSpecialEffect();
                 break;
             }
