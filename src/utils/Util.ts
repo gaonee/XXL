@@ -16,6 +16,9 @@ class Util {
             case BLOCK_TYPE.RED: {
                 return new BlockRed(info);
             }
+            case BLOCK_TYPE.MAGIC_BIRD: {
+                return  new MagicBird(info);
+            }
             default: {
                 return null;
             }
