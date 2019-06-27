@@ -41,6 +41,11 @@ class EliminateProcess {
      * @param eliminateArr 哪些列有格子消除
      */
     private dropDown(map: BlockMap, callback?: Function) {
+        if (map == null || map == undefined) {
+            callback && callback();
+            return;
+        }
+
         let dropCount = 0;
         let rowNum = map.getRowAmount();
         let colNum = map.getColAmount();
@@ -108,59 +113,60 @@ class EliminateProcess {
         for (let i = 0; i < points.length; i++) {
             let p = points[i];
             this.removeAndCollectEffectBlock(map, p.row, p.col, effectList);
-            // 标记该列有消除
-            this.setEliminateMemo(p.row, p.col);
         }
 
         return effectList;
     }
 
     /**
-     * 特效消除，批量执行子特效。
+     * 批量执行子特效。
+     * 子特效包括四种：爆炸、线性单消（横向和纵向）、魔力鸟。
      * 执行规则：每个子特效独立执行，执行完毕调用回调，互相之间不受影响。
      * @param map BlockMap
      * @param effectBlocksList 特效集合
      * @param callback 所有特效执行完成后的回调
-     * @param triggerBlock 可选字段，表示触发该特效集合的对象，包含以下情况：
+     * @param target 可选字段，表示触发该特效集合的对象，包含以下情况：
      * 1.交换触发特效，仅考虑单魔力鸟的情况，这时参数为跟魔力鸟交换的格子；
      * 2.被其它特效范围波及，此时为触发它的格子；
      * 3.被双特效交换附加效果波及，如双魔力鸟交换等。此时不知道魔力鸟要消除的对象，因此随即产生消除类型。
      * 注：该参数主要服务于魔力鸟特效，因为它需要知道类型。
     **/
-    private exec(map: BlockMap, effectBlocksList: BlockBase[], callback: Function, triggerBlock?: BlockBase) {
+    private exec(map: BlockMap, effectBlocksList: BlockBase[], onComplete: Function, target?: BlockBase) {
         let finishCount = 0;
         let effectsNum = effectBlocksList.length;
         let process = () => {
             finishCount ++;
-            if (finishCount == effectsNum && callback) {
-                callback();
+            if (finishCount == effectsNum) {
+                onComplete && onComplete();
             }
         }
 
         if (effectsNum == 0) {
-            callback && callback();
+            onComplete && onComplete();
         }
 
         for (let i = 0; i < effectsNum; i++) {
             let block = effectBlocksList[i];
+            let effect = null;
+
             switch (block.getSpecialEffect()) {
                 case EFFECT_TYPE.ROW_LINE: {
-                    this.lineRow(map, block.getRow(), process);
+                    effect = new SpecialEffects.LinearRow(map, block.getBlockInfo());
                     break;
                 }
                 case EFFECT_TYPE.COL_LINE: {
-                    this.lineCol(map, block.getCol(), process);
+                    effect = new SpecialEffects.LinearColumn(map, block.getBlockInfo());
                     break;
                 }
                 case EFFECT_TYPE.BOMB: {
-                    this.bomb(map, block.getPoint(), process);
+                    effect = new SpecialEffects.Bomb(map, block.getBlockInfo());
                     break;
                 }
                 case EFFECT_TYPE.MAGIC_BIRD: {
-                    if (triggerBlock) {
-                        this.magicBird(map, triggerBlock.getType(), process);
+                    if (target) {
+                        effect = new SpecialEffects.MagicBird(map, target.getBlockInfo());
                     } else {
-                        this.magicBird(map, Util.generateBlockType(), process);
+                        effect = new SpecialEffects.MagicBird(map, Util.generateBlockInfo(0,0,0));
                     }
                     break;
                 }
@@ -169,7 +175,87 @@ class EliminateProcess {
                     break;
                 }
             }
+
+            if (effect != null) {
+                effect.play(() => {
+                    effect.eliminate();
+                    this.exec(map, effect.getStrikeList(), process);
+                });
+            }
         }
+    }
+
+    /**
+     * 漫射特效。
+     * @param map BlockMap
+     * @param effectBlocksList 特效集合
+     * @param onComplete 所有特效执行完成后的回调
+    **/
+    private diffuseEffect(map: BlockMap, effectBlocksList: BlockBase[], onComplete: Function) {
+        let finishCount = 0;
+        let effectsNum = effectBlocksList.length;
+
+        this.oneByOne(map, effectBlocksList, 0, () => {
+            finishCount ++;
+            if (finishCount == effectsNum) {
+                onComplete && onComplete();
+            }
+        });
+    }
+
+    /**
+     * 逐个执行子特效。
+     * 子特效包括三种：爆炸、线性单消（横向和纵向）。
+     * @param map BlockMap
+     * @param effectBlocksList 特效集合
+     * @param anchor 当前执行位置
+     * @param interval 执行间隔
+     * @param callback 每个执行完回调(包括二次触发)
+    **/
+    private oneByOne(map: BlockMap, effectBlocksList: BlockBase[], anchor: number, callback: Function) {
+        let block = effectBlocksList[anchor];
+        let effect = null;
+
+        if (anchor == effectBlocksList.length) {
+            return;
+        }
+
+        // 如果map中已被删除，表示特效已触发，则忽略。
+        if (block && map.get(block.getRow(), block.getCol()) != null) {
+            switch (block.getSpecialEffect()) {
+                case EFFECT_TYPE.ROW_LINE: {
+                    effect = new SpecialEffects.LinearRow(map, block.getBlockInfo());
+                    break;
+                }
+                case EFFECT_TYPE.COL_LINE: {
+                    effect = new SpecialEffects.LinearColumn(map, block.getBlockInfo());
+                    break;
+                }
+                case EFFECT_TYPE.BOMB: {
+                    effect = new SpecialEffects.Bomb(map, block.getBlockInfo());
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+
+        if (effect != null) {
+            effect.play(() => {
+                effect.eliminate();
+                this.exec(map, effect.getStrikeList(), callback);
+
+                anchor ++;
+                this.oneByOne(map, effectBlocksList, anchor, callback);
+            });
+            return;
+        } else {
+            callback && callback();
+        }
+        
+        anchor ++;
+        this.oneByOne(map, effectBlocksList, anchor, callback);
     }
 
     /**
@@ -283,90 +369,10 @@ class EliminateProcess {
         this.eliminateMemo[col] = this.eliminateMemo[col] == undefined ? row : Math.max(row, this.eliminateMemo[col]);
     }
 
-
-    /************************************************* 独立特效实现 **************************************************/
-
-    /**
-     * 爆炸消除。消除上下左右个两个；左上，右上，左下，右下各一个
-     * @param point 爆炸点
-    **/
-    private bomb(map: BlockMap, point: Point, callback: Function) {
-        let effectList = new Array();
-        this.removeAndCollectEffectBlock(map, point.row-1, point.col, effectList);
-        this.removeAndCollectEffectBlock(map, point.row-2, point.col, effectList);
-        this.removeAndCollectEffectBlock(map, point.row+1, point.col, effectList);
-        this.removeAndCollectEffectBlock(map, point.row+2, point.col, effectList);
-
-        this.removeAndCollectEffectBlock(map, point.row, point.col-1, effectList);
-        this.removeAndCollectEffectBlock(map, point.row, point.col-2, effectList);
-        this.removeAndCollectEffectBlock(map, point.row, point.col+1, effectList);
-        this.removeAndCollectEffectBlock(map, point.row, point.col+2, effectList);
-
-        this.removeAndCollectEffectBlock(map, point.row-1, point.col-1, effectList);
-        this.removeAndCollectEffectBlock(map, point.row-1, point.col+1, effectList);
-        this.removeAndCollectEffectBlock(map, point.row+1, point.col-1, effectList);
-        this.removeAndCollectEffectBlock(map, point.row+1, point.col+1, effectList);
-
-        // this.exec(map, effectList, callback);
-        setTimeout(() => {
-            this.exec(map, effectList, callback);
-        }, 100);
-    }
-
-    /**
-     * 整列消除。
-     * @param col 需要消除的列
-    **/
-    private lineCol(map: BlockMap, col: number, callback: Function) {
-        let effectList = new Array();
-        for (let row = 0; row < map.getRowAmount(); row++) {
-            this.removeAndCollectEffectBlock(map, row, col, effectList);
-        }
-
-        setTimeout(() => {
-            this.exec(map, effectList, callback);
-        }, 100);
-    }
-
-    /**
-     * 整行消除。
-     * @param row 需要消除的行
-    **/
-    private lineRow(map: BlockMap, row: number, callback: Function) {
-        let effectList = new Array();
-        for (let col = 0; col < map.getColAmount(); col++) {
-            this.removeAndCollectEffectBlock(map, row, col, effectList);
-        }
-
-        setTimeout(() => {
-            this.exec(map, effectList, callback);
-        }, 100);
-    }
-
-    /**
-     * 单个魔力鸟消除。
-     * @param type 需要消除的类型
-    **/
-    private magicBird(map: BlockMap, type: BLOCK_TYPE, callback: Function) {
-        let effectList = new Array();
-        for (let row = 0; row < map.getRowAmount(); row++)  {
-            for (let col = 0; col < map.getColAmount(); col++) {
-                let block = map.get(row, col);
-                if (block != null && block.getType() == type) {
-                    this.removeAndCollectEffectBlock(map, row, col, effectList);
-                }
-            }
-        }
-
-        setTimeout(() => {
-            this.exec(map, effectList, callback);
-        }, 100);
-    }
-
     /************************************************* 消除调用场景 **************************************************/
 
     /**
-     * 简单交换消除，只根据指定点进行消除。
+     * 【简单交换消除】
      * 调用场景：1.简单交换三消；2.格子补全、下落消除。
      * @param map 消除发生的BlockMap
      * @param eliminateList EliminateInfo组成的数组
@@ -377,9 +383,7 @@ class EliminateProcess {
         let process = () => {
             eliminateCount ++;
             if (eliminateCount == eliminateList.length) {
-                this.dropDown(map, () => {
-                    setTimeout(callback, 50);
-                });
+                this.dropDown(map, callback);
             }
         }
 
@@ -391,44 +395,115 @@ class EliminateProcess {
     }
 
     /**
-     * 单魔力鸟交换消除。
+     * 【单魔力鸟交换消除】
      * 调用场景：单个魔力鸟与普通格子的交换。
      * @param map 消除发生的BlockMap
      * @param type 魔力鸟要消除的类型
      * @param callback 所有消除完成，且格子补全、下落后执行回调
     **/
-    public singleMagicBird(map: BlockMap, type: BLOCK_TYPE, callback: Function) {
-        this.magicBird(map, type, () => {
-            this.dropDown(map, () => {
-                setTimeout(callback, 50);
+    public singleMagicBird(map: BlockMap, magic: BlockBase, target: BlockBase, callback: Function) {
+        if (!map || !magic || !target) {
+            callback && callback();
+            return;
+        }
+
+        let effect = new SpecialEffects.MagicBird(map, target.getBlockInfo());
+        let magicPoint: Point = magic.getPoint();
+
+        this.eliminateMemo = new Array(map.getColAmount());
+
+        effect.play(() => {
+            // 特效动画执行完之后，先删除魔力鸟所在点，防止后面做重复特效处理。
+            map.remove(magicPoint.row, magicPoint.col);
+            effect.eliminate();
+            this.exec(map, effect.getStrikeList(), () => {
+                this.dropDown(map, callback);
             });
         });
     }
 
     /**
-     * 横向+爆炸。
-     * @param type 需要消除的类型
+     * 【双特效交换】
+     * 调用场景：两个特效格子的交换。
+     * @param map 消除发生的BlockMap
+     * @param type 魔力鸟要消除的类型
+     * @param callback 所有消除完成，且格子补全、下落后执行回调
     **/
-    public bombAndRowLine() {}
+    public doubleEffectsSwap(map: BlockMap, trigger: BlockBase, target: BlockBase, callback: Function) {
+        if (!map || !trigger || !target) {
+            callback && callback();
+            return;
+        }
 
-    /**
-     * 纵向+爆炸。
-     * @param type 需要消除的类型
-    **/
-    public bombAndColLine() {}
+        let triggerInfo: BlockInfo = trigger.getBlockInfo();
+        let targetInfo: BlockInfo = target.getBlockInfo();
 
-    /**
-     * 双爆。
-    **/
-    public doubleBomb() {}
+        if (triggerInfo.effectType == null || targetInfo.effectType == null) {
+            Log.warn("doubleEffectsSwap error: not special effect block.");
+            callback && callback();
+            return;
+        }
 
-    /**
-     * 魔力鸟+其它非魔力鸟的特效。
-    **/
-    public magicBirdAndOther() {}
+        let effect: SpecialEffects.Base = null;
 
-    /**
-     * 魔力鸟+魔力鸟。
-    **/
-    public doubleMagicBird() {}
+        map.remove(trigger.getRow(), trigger.getCol());
+        map.remove(target.getRow(), target.getCol());
+
+        if (triggerInfo.effectType == EFFECT_TYPE.MAGIC_BIRD && targetInfo.effectType == EFFECT_TYPE.MAGIC_BIRD) {
+            effect = new SpecialEffects.DoubleMagicBird(map, triggerInfo, targetInfo);
+            effect.play(() => {
+                this.exec(map, effect.getStrikeList(), () => {
+                    effect.eliminate();
+                    this.dropDown(map, callback);
+                });
+            });
+            return;
+        } else {
+            if (triggerInfo.effectType == EFFECT_TYPE.MAGIC_BIRD || targetInfo.effectType == EFFECT_TYPE.MAGIC_BIRD) {
+                effect = new SpecialEffects.MagicBirdWithOther(map, triggerInfo, targetInfo);
+                effect.play(() => {
+                    this.diffuseEffect(map, effect.getStrikeList(), () => {
+                        this.dropDown(map, callback);
+                    });
+                });
+                return;
+            } else {
+                // 线性交叉
+                if ((triggerInfo.effectType == EFFECT_TYPE.COL_LINE && targetInfo.effectType == EFFECT_TYPE.ROW_LINE) ||
+                    (triggerInfo.effectType == EFFECT_TYPE.ROW_LINE && targetInfo.effectType == EFFECT_TYPE.COL_LINE)) {
+                    effect = new SpecialEffects.LinearCross(map, triggerInfo, targetInfo);
+                } else if (triggerInfo.effectType == EFFECT_TYPE.ROW_LINE && targetInfo.effectType == EFFECT_TYPE.ROW_LINE) {
+                    // 双横向
+                    effect = new SpecialEffects.DoubleLinearRow(map, triggerInfo, targetInfo);
+                } else if (triggerInfo.effectType == EFFECT_TYPE.COL_LINE && targetInfo.effectType == EFFECT_TYPE.COL_LINE) {
+                    // 双纵向
+                    effect = new SpecialEffects.DoubleLinearCol(map, triggerInfo, targetInfo);
+                } else if ((triggerInfo.effectType == EFFECT_TYPE.ROW_LINE && targetInfo.effectType == EFFECT_TYPE.BOMB) ||
+                    (triggerInfo.effectType == EFFECT_TYPE.BOMB && targetInfo.effectType == EFFECT_TYPE.ROW_LINE)) {
+                    // 横向爆炸
+                    effect = new SpecialEffects.LinearRowBomb(map, triggerInfo, targetInfo);
+                } else if ((triggerInfo.effectType == EFFECT_TYPE.COL_LINE && targetInfo.effectType == EFFECT_TYPE.BOMB) ||
+                    (triggerInfo.effectType == EFFECT_TYPE.BOMB && targetInfo.effectType == EFFECT_TYPE.COL_LINE)) {
+                    // 纵向爆炸
+                    effect = new SpecialEffects.LinearColBomb(map, triggerInfo, targetInfo);
+                } else if (triggerInfo.effectType == EFFECT_TYPE.BOMB && targetInfo.effectType == EFFECT_TYPE.BOMB) {
+                    // 双爆
+                    effect = new SpecialEffects.DoubleBomb(map, triggerInfo, targetInfo);
+                }
+            }
+        }
+
+        if (effect != null) {
+            effect.play(() => {
+                effect.eliminate();
+
+                this.exec(map, effect.getStrikeList(), () => {
+                    this.dropDown(map, callback);
+                });
+            })
+        }
+    }
+
+
+
 }
