@@ -53,6 +53,13 @@ class Control {
                 if (this.map.isLine(i, j, info)) {
                     info.type = this.map.getDifferentType(i, j);
                 }
+                if (i == 5 && j == 4) {
+                    info.type = BLOCK_TYPE.MAGIC_BIRD;
+                    info.effectType = EFFECT_TYPE.MAGIC_BIRD;
+                } else if (i == 5 && j == 5) {
+                    info.type = BLOCK_TYPE.MAGIC_BIRD;
+                    info.effectType = EFFECT_TYPE.MAGIC_BIRD;
+                }
                 this.map.add(i, j, Util.createBlock(info))
             }
         }
@@ -176,10 +183,10 @@ class Control {
             } else {
                 if (touchEffect == EFFECT_TYPE.MAGIC_BIRD) {
                     this.map.swap(touchRow, touchCol, swapRow, swapCol);
-                    this.singleMagicBirdSwap(touchBlock.getPoint(), distBlock.getType());
+                    this.singleMagicBirdSwap(touchBlock, distBlock);
                 } else if (distEffect == EFFECT_TYPE.MAGIC_BIRD) {
                     this.map.swap(touchRow, touchCol, swapRow, swapCol);
-                    this.singleMagicBirdSwap(distBlock.getPoint(), touchBlock.getType());
+                    this.singleMagicBirdSwap(distBlock, touchBlock);
                 } else {
                     this.simpleSwap(touchRow, touchCol, swapRow, swapCol, dir);
                 }
@@ -211,8 +218,8 @@ class Control {
      * 单魔力鸟交换
      * 当交换双方只有一个特效，且为魔力鸟时，可以直接进行交换。
     **/
-    private singleMagicBirdSwap(point: Point, type: BLOCK_TYPE) {
-        this.map.magicBirdEliminateProcess(point, type, () => {
+    private singleMagicBirdSwap(magic: BlockBase, target: BlockBase) {
+        this.map.magicBirdEliminateProcess(magic, target, () => {
             this.whoolyEliminate();
         });
     }
