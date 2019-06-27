@@ -171,9 +171,8 @@ class BlockMap {
         this.effectsProcess.simple(this, eliminateList, callback);
     }
 
-    public magicBirdEliminateProcess(magicBirdPoint: Point, type: BLOCK_TYPE, callback: Function) {
-        this.remove(magicBirdPoint.row, magicBirdPoint.col);
-        this.effectsProcess.singleMagicBird(this, type, callback);
+    public magicBirdEliminateProcess(magic: BlockBase, target: BlockBase, callback: Function) {
+        this.effectsProcess.singleMagicBird(this, magic, target, callback);
     }
 
     /**
@@ -183,8 +182,7 @@ class BlockMap {
      * @param callback 消除并补全、下落完成后调用
     **/
     public effectSwapEliminateProcess(touchBlock: BlockBase, swapBlock: BlockBase, callback: Function) {
-        let touchEffect = touchBlock.getSpecialEffect();
-        let swapEffect = swapBlock.getSpecialEffect();
+        this.effectsProcess.doubleEffectsSwap(this, touchBlock, swapBlock, callback);
     }
 
     /**
