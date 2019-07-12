@@ -134,7 +134,13 @@ class EliminateCheck {
 
         if (Array.isArray(rowArr) && rowArr.length >= 3) {
             if (Array.isArray(colArr) && colArr.length >= 3) {
-                eliminateType = ELIMINATE_TYPE.NON_LINE;
+                // 非线性消除中，存在线性5消，认为是线性5消
+                if (rowArr.length == 5 || colArr.length == 5) {
+                    eliminateType = ELIMINATE_TYPE.ROW_LINE_FIVE;
+                } else {
+                    eliminateType = ELIMINATE_TYPE.NON_LINE;
+                }
+                
                 eliminatePoints = rowArr.concat(colArr);
             } else {
                 // 横向线性消除
