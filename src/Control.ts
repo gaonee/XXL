@@ -53,13 +53,6 @@ class Control {
                 if (this.map.isLine(i, j, info)) {
                     info.type = this.map.getDifferentType(i, j);
                 }
-                if (i == 5 && j == 4) {
-                    info.type = BLOCK_TYPE.MAGIC_BIRD;
-                    info.effectType = EFFECT_TYPE.MAGIC_BIRD;
-                } else if (i == 5 && j == 5) {
-                    info.type = BLOCK_TYPE.MAGIC_BIRD;
-                    info.effectType = EFFECT_TYPE.MAGIC_BIRD;
-                }
                 this.map.add(i, j, Util.createBlock(info))
             }
         }
