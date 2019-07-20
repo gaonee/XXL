@@ -167,23 +167,7 @@ class Control {
 
         this.status = BLOCK_STATUS.MOVING;
         this.map.swapNeighbors(touchBlock, distBlock, dir, () => {
-            let touchEffect = touchBlock.getSpecialEffect();
-            let distEffect = distBlock.getSpecialEffect();
-
-            if (touchEffect != null && distEffect != null) {
-                this.map.swap(touchRow, touchCol, swapRow, swapCol);
-                this.specialEffectSwap(touchBlock, distBlock);
-            } else {
-                if (touchEffect == EFFECT_TYPE.MAGIC_BIRD) {
-                    this.map.swap(touchRow, touchCol, swapRow, swapCol);
-                    this.singleMagicBirdSwap(touchBlock, distBlock);
-                } else if (distEffect == EFFECT_TYPE.MAGIC_BIRD) {
-                    this.map.swap(touchRow, touchCol, swapRow, swapCol);
-                    this.singleMagicBirdSwap(distBlock, touchBlock);
-                } else {
-                    this.simpleSwap(touchRow, touchCol, swapRow, swapCol, dir);
-                }
-            }
+            this.simpleSwap(touchRow, touchCol, swapRow, swapCol, dir);
         });
     }
 
@@ -205,26 +189,6 @@ class Control {
                 this.status = BLOCK_STATUS.READY;
             }, 100);
         }
-    }
-
-    /*
-     * 单魔力鸟交换
-     * 当交换双方只有一个特效，且为魔力鸟时，可以直接进行交换。
-    **/
-    private singleMagicBirdSwap(magic: BlockBase, target: BlockBase) {
-        this.map.magicBirdEliminateProcess(magic, target, () => {
-            this.whoolyEliminate();
-        });
-    }
-
-    /*
-     * 双特效交换
-     * 交换双方均为特效，可以直接进行交换。
-    **/
-    private specialEffectSwap(touchBlock: BlockBase, swapBlock: BlockBase) {
-        this.map.effectSwapEliminateProcess(touchBlock, swapBlock, () => {
-            this.whoolyEliminate();
-        });
     }
 
     /*
