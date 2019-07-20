@@ -134,7 +134,7 @@ class EliminateCheck {
 
         if (Array.isArray(rowArr) && rowArr.length >= 3) {
             if (Array.isArray(colArr) && colArr.length >= 3) {
-                // 非线性消除中，存在线性5消，认为是线性5消
+                // 非线性消除中，如果存在线性5消，则认为是线性5消。因处理方式一样，统一认作横向线性5消。
                 if (rowArr.length == 5 || colArr.length == 5) {
                     eliminateType = ELIMINATE_TYPE.ROW_LINE_FIVE;
                 } else {
