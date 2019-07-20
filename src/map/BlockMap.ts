@@ -171,20 +171,6 @@ class BlockMap {
         this.effectsProcess.simple(this, eliminateList, callback);
     }
 
-    public magicBirdEliminateProcess(magic: BlockBase, target: BlockBase, callback: Function) {
-        this.effectsProcess.singleMagicBird(this, magic, target, callback);
-    }
-
-    /**
-     * 双特效交换消除
-     * @param touchBlock 手指触摸的格子
-     * @param swapBlock 被交换的格子
-     * @param callback 消除并补全、下落完成后调用
-    **/
-    public effectSwapEliminateProcess(touchBlock: BlockBase, swapBlock: BlockBase, callback: Function) {
-        this.effectsProcess.doubleEffectsSwap(this, touchBlock, swapBlock, callback);
-    }
-
     /**
      * 交换相邻位置格子
     **/
